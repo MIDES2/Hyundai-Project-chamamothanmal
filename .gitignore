@@ -1,0 +1,49 @@
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+!.env.*.example
+local.properties
+*.jks
+*.keystore
+*.p12
+*.pem
+credentials*.json
+service-account*.json
+# React / Node
+node_modules/
+dist/
+coverage/
+.next/
+# Python / FastAPI
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+# Android / Gradle
+.gradle/
+.kotlin/
+build/
+*.apk
+*.aab
+*.hprof
+# Local data and uploads
+*.db
+*.sqlite
+*.sqlite3
+uploads/
+logs/
+*.log
+# Editors / OS
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.DS_Store
+Thumbs.db
+*.swp
