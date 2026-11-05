@@ -10,12 +10,12 @@ local.properties
 *.pem
 credentials*.json
 service-account*.json
-# React / Node
+# Browser tooling, if adopted
 node_modules/
 dist/
 coverage/
 .next/
-# Python / FastAPI
+# Python repository tooling
 __pycache__/
 *.py[cod]
 .venv/
@@ -28,6 +28,8 @@ htmlcov/
 # Android / Gradle
 .gradle/
 .kotlin/
+.gradle-user-home/
+*.class
 build/
 *.apk
 *.aab

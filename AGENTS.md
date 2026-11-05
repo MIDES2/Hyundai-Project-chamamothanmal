@@ -6,7 +6,7 @@ README.md → CONTRIBUTING.md → 담당 경로 README → docs/contracts/README
 
 ## 작업 범위
 - 요청된 영역만 수정한다. 기존 사용자 변경을 덮어쓰거나 되돌리지 않는다.
-- React는 apps/web, FastAPI는 services/api, Android·Pleos는 apps/vehicle에 둔다.
+- Java·Kotlin을 개발 기준으로 사용한다. 모바일 웹은 apps/web, 서버는 services/api, Android와 Pleos는 apps/vehicle에 둔다. 해당 경로에 AGENTS.md가 있으면 함께 읽는다.
 - 스택 세부 버전·패키지 관리자·SDK 기능을 추측해 확정하지 않는다.
 - API·차량 이벤트 변경 시 관련 담당자와 계약 문서를 함께 갱신한다.
 - 실제 신호와 mock 이벤트를 명확히 구분한다. 미확인 상태를 주차·재생 허용으로 처리하지 않는다.
@@ -16,7 +16,7 @@ README.md → CONTRIBUTING.md → 담당 경로 README → docs/contracts/README
 ## 작업 절차
 1. 현재 브랜치와 변경 상태를 확인하고 작업 목적·변경 범위를 정리한다.
 2. 변경이 여러 영역에 걸치면 docs/work-log-template.md를 복사해 계획과 미결 사항을 남긴다.
-3. 최소 변경으로 구현하고 해당 영역에 실제 존재하는 테스트·빌드를 실행한다.
+3. 최소 변경으로 구현하고 해당 영역에 실제 존재하는 컴파일·단위 테스트·Lint를 실행한다. docs/verification.md의 기준과 프로젝트 태스크를 확인한다.
 4. python scripts/check_repository.py 및 git diff --check를 실행한다.
 5. 결과에 변경 내용, 실행한 검사, 미실행 사유, 남은 통합 위험을 기록한다.
 

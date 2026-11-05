@@ -30,3 +30,7 @@ GitHub에서 작업 브랜치 → develop PR을 연다. 통합 검증 이후 dev
 .env.example만 공유한다. 실제 .env는 각자 생성한다. 비밀값 유출 시 삭제뿐 아니라 해당 키를 폐기·재발급한다.
 APK·영상·실제 음성 데이터는 소스 저장소에 넣지 않는다. 제출 APK는 검증 후 GitHub Release 등 팀 합의 공간에서 공유한다.
 의존성 잠금 파일과 Gradle wrapper는 프로젝트 생성 시 함께 커밋한다.
+
+## 병합 전 검증
+
+Gradle 프로젝트가 구성된 영역은 컴파일과 단위 테스트를 실행한다. Android 변경에는 해당 변형의 Lint를 포함한다. 실행 명령과 결과, SDK 환경이 없어 실행하지 못한 검사를 PR에 기록한다. [검증 기준](docs/verification.md)
