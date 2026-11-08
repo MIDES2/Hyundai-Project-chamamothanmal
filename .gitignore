@@ -41,6 +41,9 @@ build/
 uploads/
 logs/
 *.log
+# Legacy API build outputs and local H2 data
+services/api/target/
+services/api/data/
 # Editors / OS
 .idea/
 .vscode/*
