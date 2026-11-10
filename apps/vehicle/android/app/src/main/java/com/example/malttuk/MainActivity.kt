@@ -11,11 +11,14 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ScrollView
+import android.widget.Spinner
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
@@ -31,9 +34,62 @@ class MainActivity : AppCompatActivity() {
     private var hasAudioFocus = false
     private var screenResumed = false
 
-    private var mockCondition = false
-    private var mockCheckBox: CheckBox? = null
+    private data class VehiclePlaybackState(
+        val arrived: Boolean?,
+        val parked: Boolean?,
+        val doorsClosed: Boolean?
+    ) {
+        fun blockingReason(): String? = when {
+            parked == false -> "차량이 주차 상태가 아닙니다"
+            doorsClosed == false -> "문이 열려 있습니다"
+            arrived == false -> "목적지에 도착하지 않았습니다"
+            parked == null -> "주차 상태를 확인할 수 없습니다"
+            doorsClosed == null -> "문 상태를 확인할 수 없습니다"
+            arrived == null -> "도착 여부를 확인할 수 없습니다"
+            else -> null
+        }
+    }
+
+    private data class MockVehicleControls(
+        val arrival: Spinner,
+        val parking: Spinner,
+        val doors: Spinner,
+        val replyInput: Spinner
+    ) {
+        fun state() = VehiclePlaybackState(
+            arrived = readSelection(arrival),
+            parked = readSelection(parking),
+            doorsClosed = readSelection(doors)
+        )
+
+        fun isReplyInputAllowed(): Boolean = readSelection(replyInput) == true
+
+        fun reset() {
+            arrival.setSelection(0)
+            parking.setSelection(0)
+            doors.setSelection(0)
+            replyInput.setSelection(0)
+        }
+
+        private fun readSelection(input: Spinner): Boolean? =
+            when (input.selectedItemPosition) {
+                1 -> true
+                2 -> false
+                else -> null
+            }
+    }
+
+    private data class DeliveryKey(val messageId: String, val tripId: Int)
+
+    private val testMessageId = "test-message-01"
+    private var mockTripId = 1
+    private val completedDeliveries = mutableSetOf<DeliveryKey>()
+    private val mockReplies = mutableMapOf<DeliveryKey, String>()
+
+    private var mockVehicleControls: MockVehicleControls? = null
+    private var listenForThisTrip = false
     private var playbackStatus: TextView? = null
+    private var refreshReplyUi: (() -> Unit)? = null
 
     private val audioAttributes = AudioAttributes.Builder()
         .setUsage(AudioAttributes.USAGE_MEDIA)
@@ -41,18 +97,16 @@ class MainActivity : AppCompatActivity() {
         .build()
 
     private val isDebugApp: Boolean
-        get() = (applicationInfo.flags and
-            ApplicationInfo.FLAG_DEBUGGABLE) != 0
+        get() = (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+
+    private fun currentDelivery() = DeliveryKey(testMessageId, mockTripId)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         audioManager = getSystemService(AudioManager::class.java)
-
-        focusRequest = AudioFocusRequest.Builder(
-            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT
-        )
+        focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
             .setAudioAttributes(audioAttributes)
             .setAcceptsDelayedFocusGain(false)
             .setWillPauseWhenDucked(true)
@@ -64,10 +118,6 @@ class MainActivity : AppCompatActivity() {
                         AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
                             stopPlayback("다른 오디오 우선으로 중단")
                         }
-
-                        AudioManager.AUDIOFOCUS_GAIN -> {
-                            // 자동으로 다시 재생하지 않는다.
-                        }
                     }
                 },
                 Handler(Looper.getMainLooper())
@@ -75,19 +125,9 @@ class MainActivity : AppCompatActivity() {
             .build()
 
         val mainView = findViewById<View>(R.id.main)
-
         ViewCompat.setOnApplyWindowInsetsListener(mainView) { view, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars()
-            )
-
-            view.setPadding(
-                bars.left,
-                bars.top,
-                bars.right,
-                bars.bottom
-            )
-
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
             insets
         }
 
@@ -111,25 +151,24 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         screenResumed = true
+        refreshReplyUi?.invoke()
     }
 
     override fun onPause() {
         screenResumed = false
-
-        stopPlayback("화면 이탈로 중단")
-
-        // 앱으로 돌아와도 모의 조건을 다시 선택해야 한다.
-        mockCondition = false
-        mockCheckBox?.isChecked = false
-
+        if (player != null) {
+            stopPlayback("화면 이탈로 중단")
+        }
+        mockVehicleControls?.reset()
+        refreshReplyUi?.invoke()
         super.onPause()
     }
 
     override fun onDestroy() {
         stopPlayback("재생 종료")
         playbackStatus = null
-        mockCheckBox = null
-
+        mockVehicleControls = null
+        refreshReplyUi = null
         super.onDestroy()
     }
 
@@ -170,11 +209,10 @@ class MainActivity : AppCompatActivity() {
                     bottomMargin = dp(20)
                 }
             )
-
             return textView
         }
 
-        fun addButton(label: String, action: () -> Unit) {
+        fun addButton(label: String, action: () -> Unit): Button {
             val button = Button(this).apply {
                 text = label
                 textSize = 20f
@@ -191,57 +229,171 @@ class MainActivity : AppCompatActivity() {
                     bottomMargin = dp(12)
                 }
             )
+            return button
         }
 
         addText("차마못한말 · 테스트 상세", 28f)
         addText("발표회에 도착하면 들어요", 24f)
         addText("목적지: 테스트 발표회장", 20f)
-
         addText(
             "실제 차량 상태는 아직 미확인입니다.\n" +
                 "아래 기능은 에뮬레이터에서 파일 재생을 확인하는 모의 테스트입니다.",
             18f
         )
 
-        playbackStatus = addText("재생 상태: 대기", 20f)
+        val initialStatus = if (currentDelivery() in completedDeliveries) {
+            "테스트 음성 재생 완료"
+        } else {
+            "대기"
+        }
+        playbackStatus = addText("재생 상태: $initialStatus", 20f)
 
-        mockCondition = false
+        if (isDebugApp) {
+            val tripLabel = addText("모의 이동 $mockTripId", 18f)
 
-        val conditionCheckBox = CheckBox(this).apply {
-            text = "모의 도착·주차 조건 충족 (실제 신호 아님)"
-            textSize = 18f
-            minHeight = dp(64)
-            isEnabled = isDebugApp
+            fun addMockSelector(label: String, allowed: String, blocked: String): Spinner {
+                val selector = Spinner(this).apply {
+                    id = View.generateViewId()
+                    minimumHeight = dp(56)
+                    adapter = ArrayAdapter(
+                        this@MainActivity,
+                        android.R.layout.simple_spinner_item,
+                        listOf("미확인", allowed, blocked)
+                    ).apply {
+                        setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                    }
 
-            setOnCheckedChangeListener { _, checked ->
-                mockCondition = checked && isDebugApp
+                    onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                        override fun onItemSelected(
+                            parent: AdapterView<*>,
+                            view: View?,
+                            position: Int,
+                            id: Long
+                        ) {
+                            stopIfVehicleStateBlocksPlayback()
+                            refreshReplyUi?.invoke()
+                        }
 
-                if (!mockCondition) {
-                    stopPlayback("모의 조건 해제 · 재생 보류")
-                } else {
-                    updateStatus("모의 조건 선택됨 · 재생 버튼을 눌러주세요")
+                        override fun onNothingSelected(parent: AdapterView<*>) {
+                            stopIfVehicleStateBlocksPlayback()
+                            refreshReplyUi?.invoke()
+                        }
+                    }
+                }
+
+                addText(label, 18f).labelFor = selector.id
+                content.addView(
+                    selector,
+                    LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    )
+                )
+                return selector
+            }
+
+            mockVehicleControls = MockVehicleControls(
+                arrival = addMockSelector("모의 도착 상태", "도착", "도착 전"),
+                parking = addMockSelector("모의 주차 상태", "주차", "주행"),
+                doors = addMockSelector("모의 문 상태", "문 닫힘", "문 열림"),
+                replyInput = addMockSelector("모의 답장 입력 상태", "허용", "제한")
+            )
+
+            val listenCheckBox = CheckBox(this).apply {
+                text = "이번 이동에서 듣기"
+                textSize = 18f
+                minHeight = dp(64)
+                isChecked = listenForThisTrip
+
+                setOnCheckedChangeListener { checkbox, checked ->
+                    if (checked && mockVehicleControls?.state()?.parked != true) {
+                        checkbox.isChecked = false
+                        updateStatus("주차 상태에서 이번 이동의 듣기를 선택해주세요")
+                    } else {
+                        listenForThisTrip = checked
+
+                        if (checked) {
+                            updateStatus("이번 이동에서 듣기 선택됨")
+                        } else if (player != null) {
+                            stopPlayback("재생 중단 · 이번 이동의 듣기 선택을 해제했습니다")
+                        } else {
+                            updateStatus("이번 이동의 듣기 선택을 해제했습니다")
+                        }
+                    }
                 }
             }
-        }
 
-        mockCheckBox = conditionCheckBox
-        content.addView(conditionCheckBox)
+            content.addView(listenCheckBox)
+
+            addButton("새 모의 이동 시작") {
+                if (player != null) {
+                    stopPlayback("재생 중단 · 새 모의 이동 시작")
+                }
+                mockTripId += 1
+                listenForThisTrip = false
+                listenCheckBox.isChecked = false
+                mockVehicleControls?.reset()
+                tripLabel.text = "모의 이동 $mockTripId"
+                updateStatus("새 모의 이동 · 차량 상태와 듣기 선택을 설정해주세요")
+                refreshReplyUi?.invoke()
+            }
+        }
 
         addButton("테스트 음성 재생") {
             startTestPlayback()
         }
 
         addButton("멈춤") {
-            stopPlayback("사용자가 중단")
+            if (player != null) {
+                stopPlayback("사용자가 중단")
+            }
+        }
+
+        if (isDebugApp) {
+            addText("짧은 답장 · 모의 테스트", 20f)
+            val replyAvailability = addText("", 18f)
+            val replySelection = addText("", 18f)
+
+            fun selectReply(reply: String) {
+                if (replyBlockingReason() == null) {
+                    mockReplies[currentDelivery()] = reply
+                }
+                refreshReplyUi?.invoke()
+            }
+
+            val thanksButton = addButton("고마워요") {
+                selectReply("고마워요")
+            }
+            val arrivedButton = addButton("잘 도착했어요") {
+                selectReply("잘 도착했어요")
+            }
+
+            refreshReplyUi = {
+                val reason = replyBlockingReason()
+                val selected = mockReplies[currentDelivery()]
+
+                thanksButton.isEnabled = reason == null
+                arrivedButton.isEnabled = reason == null
+                replyAvailability.text = if (reason == null) {
+                    "답장을 선택할 수 있어요"
+                } else {
+                    "답장 보류 · $reason"
+                }
+                replySelection.text = if (selected == null) {
+                    "모의 답장 선택 없음"
+                } else {
+                    "모의 답장 선택 · $selected"
+                }
+            }
+            refreshReplyUi?.invoke()
         }
 
         val backCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 stopPlayback("목록 복귀로 중단")
-
-                mockCondition = false
-                mockCheckBox = null
+                mockVehicleControls = null
                 playbackStatus = null
+                refreshReplyUi = null
 
                 root.removeView(detailScreen)
                 listScreen.visibility = View.VISIBLE
@@ -256,7 +408,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         listScreen.visibility = View.GONE
-
         root.addView(
             detailScreen,
             LinearLayout.LayoutParams(
@@ -266,24 +417,74 @@ class MainActivity : AppCompatActivity() {
         )
 
         onBackPressedDispatcher.addCallback(this, backCallback)
-
         Log.d("ChamamothanmalUi", "DETAIL_SHOWN")
     }
 
-    private fun startTestPlayback() {
-        if (!isDebugApp || !screenResumed || !mockCondition) {
-            updateStatus("재생 보류 · 모의 조건을 먼저 선택해주세요")
+    private fun replyBlockingReason(): String? {
+        if (!isDebugApp || !screenResumed) {
+            return "테스트 화면에서만 답장을 선택할 수 있습니다"
+        }
+
+        val controls = mockVehicleControls
+            ?: return "모의 차량 상태를 확인할 수 없습니다"
+
+        return when {
+            controls.state().parked != true -> "주차 상태를 확인해주세요"
+            !controls.isReplyInputAllowed() -> "답장 입력이 허용된 상태여야 합니다"
+            currentDelivery() !in completedDeliveries -> "음성을 끝까지 들은 뒤 답장할 수 있습니다"
+            else -> null
+        }
+    }
+
+    private fun vehicleBlockingReason(): String? {
+        val controls = mockVehicleControls
+            ?: return "모의 차량 상태를 확인할 수 없습니다"
+
+        val vehicleReason = controls.state().blockingReason()
+        if (vehicleReason != null) {
+            return vehicleReason
+        }
+
+        return if (listenForThisTrip) {
+            null
+        } else {
+            "이번 이동에서 듣기를 먼저 선택해주세요"
+        }
+    }
+
+    private fun stopIfVehicleStateBlocksPlayback() {
+        if (!screenResumed || player == null) {
             return
         }
 
-        // 준비 중이거나 재생 중이면 새 플레이어를 만들지 않는다.
+        val reason = vehicleBlockingReason() ?: return
+        stopPlayback("재생 중단 · $reason")
+    }
+
+    private fun startTestPlayback() {
+        if (!isDebugApp || !screenResumed) {
+            updateStatus("재생 보류 · 테스트 화면에서만 재생할 수 있습니다")
+            return
+        }
+
         if (player != null) {
+            return
+        }
+
+        val delivery = currentDelivery()
+        if (delivery in completedDeliveries) {
+            updateStatus("이미 재생 완료 · 이번 이동에서 이 메시지를 들었습니다")
+            return
+        }
+
+        val reason = vehicleBlockingReason()
+        if (reason != null) {
+            updateStatus("재생 보류 · $reason")
             return
         }
 
         try {
             val result = audioManager.requestAudioFocus(focusRequest)
-
             if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
                 audioManager.abandonAudioFocusRequest(focusRequest)
                 updateStatus("재생 보류 · 오디오 포커스를 얻지 못했습니다")
@@ -294,7 +495,6 @@ class MainActivity : AppCompatActivity() {
 
             val newPlayer = MediaPlayer()
             player = newPlayer
-
             newPlayer.setAudioAttributes(audioAttributes)
 
             @android.annotation.SuppressLint("DiscouragedApi")
@@ -313,40 +513,40 @@ class MainActivity : AppCompatActivity() {
 
             newPlayer.setOnPreparedListener { preparedPlayer ->
                 if (player === preparedPlayer) {
-                    if (
-                        screenResumed &&
-                        mockCondition &&
-                        hasAudioFocus
-                    ) {
+                    val blockingReason = vehicleBlockingReason()
+
+                    if (screenResumed && blockingReason == null && hasAudioFocus) {
                         try {
                             preparedPlayer.start()
                             updateStatus("테스트 음성 재생 중")
                         } catch (error: Exception) {
-                            Log.e(
-                                "ChamamothanmalUi",
-                                "PLAY_START_FAILED",
-                                error
-                            )
+                            Log.e("ChamamothanmalUi", "PLAY_START_FAILED", error)
                             stopPlayback("재생 시작 실패")
                         }
                     } else {
-                        stopPlayback("재생 조건 변경으로 보류")
+                        stopPlayback(
+                            "재생 중단 · ${blockingReason ?: "재생 조건이 바뀌었습니다"}"
+                        )
                     }
                 }
             }
 
             newPlayer.setOnCompletionListener { completedPlayer ->
                 if (player === completedPlayer) {
-                    stopPlayback("테스트 음성 재생 완료")
+                    val blockingReason = vehicleBlockingReason()
+                    if (blockingReason != null) {
+                        stopPlayback("재생 중단 · $blockingReason")
+                    } else {
+                        completedDeliveries.add(delivery)
+                        stopPlayback("테스트 음성 재생 완료")
+                        refreshReplyUi?.invoke()
+                    }
                 }
             }
 
             newPlayer.setOnErrorListener { failedPlayer, what, extra ->
                 if (player === failedPlayer) {
-                    Log.e(
-                        "ChamamothanmalUi",
-                        "PLAYER_ERROR what=$what extra=$extra"
-                    )
+                    Log.e("ChamamothanmalUi", "PLAYER_ERROR what=$what extra=$extra")
                     stopPlayback("음성 파일 재생 오류")
                 }
                 true
@@ -354,13 +554,8 @@ class MainActivity : AppCompatActivity() {
 
             updateStatus("음성 파일 준비 중")
             newPlayer.prepareAsync()
-
         } catch (error: Exception) {
-            Log.e(
-                "ChamamothanmalUi",
-                "PLAYBACK_FAILED",
-                error
-            )
+            Log.e("ChamamothanmalUi", "PLAYBACK_FAILED", error)
             stopPlayback("음성 파일 준비 실패")
         }
     }
