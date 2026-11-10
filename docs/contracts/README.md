@@ -26,8 +26,8 @@
 | 내비 목적지 | NaviHelper `getDestinationInfo` → `onDestinationInfo` | 지원 | `pleos.car.permission.NAVI_ROUTE` | 경로 요청 후 목적지 좌표 수신 성공, 다른 장소 메시지는 `DESTINATION_MISMATCH` 보류 | `setMockNavi` (디버그 빌드) |
 | 내비 변경·취소 | `onDestinationChanged`·`onRouteCancelled`·`onRouteEnded` | 지원 | `pleos.car.permission.NAVI_ROUTE` | 경로 취소 → `ROUTE_CANCELLED` 이벤트·목적지 해제 성공. 목적지 변경은 미실행 | — |
 | 내비 도착 | `onDestinationArrived` | SDK에 이벤트 존재 | `pleos.car.permission.NAVI_ROUTE` | 미확인 (에뮬레이터 내비가 이동을 인식하지 못함). GPS 미확인 시 보조 근거로만 사용 | `setMockNavi(..., arrived=true)` |
-| 주차·P단 | Vehicle `Gear` 변경 알림 + 3초 재조회 | 지원 (SDK 2.3.2에서 지원 중단 표시, `GEAR_SELECTION` 프로퍼티 권장) | `pleos.car.permission.CAR_DRIVE` | `GEAR_PARK` 수신 성공. Virtual Console D 변경 반영은 수동 확인 대기 | `setMockGear` (디버그 빌드) |
-| 도어 | Vehicle `Door` 지원 도어별 변경 알림 + 3초 재조회 | 지원 (에뮬레이터 지원 도어 6개) | `pleos.car.permission.CAR_DOORS` | `CLOSED` 수신 성공. 열림 반영은 Virtual Console 수동 확인 대기(SDK `setDoorPosition`은 성공 응답하나 값 불변) | `setMockDoor` (디버그 빌드) |
+| 주차·P단 | Vehicle `Gear` 변경 알림 + 3초 재조회 | 지원 (SDK 2.3.2에서 지원 중단 표시, `GEAR_SELECTION` 프로퍼티 권장) | `pleos.car.permission.CAR_DRIVE` | `GEAR_PARK` 수신, Virtual Console P→D 변경 반영 성공 | `setMockGear` (디버그 빌드) |
+| 도어 | Vehicle `Door` 지원 도어별 변경 알림 + 3초 재조회 | 지원 (에뮬레이터 지원 도어 6개) | `pleos.car.permission.CAR_DOORS` | `CLOSED` 수신, Virtual Console 운전석 열림 반영·`DOOR_OPEN` 보류 성공 (SDK `setDoorPosition`은 성공 응답하나 값 불변) | `setMockDoor` (디버그 빌드) |
 
 ## 상태 → 재생 판정 (재민 제안, 규혁·민석 검토 필요)
 

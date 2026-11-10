@@ -118,9 +118,10 @@ Pleos Connect v2.1.0 에뮬레이터에서 기본 내비(`ai.umos.maps.android.n
 # 위치: 다른 터미널에서 1초마다 adb emu geo fix <경도> <위도> 를 보내는 동안
 #       (geo fix는 한 번만 위치를 넣고, 같은 좌표를 반복하면 갱신이 오지 않을 수 있어 소수점 끝자리를 번갈아 바꿈)
 adb shell am instrument -w -e class io.chamamothanmal.vehiclestate.VehicleStateMonitorDeviceTest#followsLocationChange -e expectLat 37.4979 -e expectLon 127.0276 io.chamamothanmal.vehiclestate.test/androidx.test.runner.AndroidJUnitRunner
-# 기어: 실행 후 60초 안에 Virtual Console에서 D로 변경
+# Virtual Console 열기: adb forward tcp:8088 tcp:8088 후 PC 브라우저에서 http://127.0.0.1:8088/ → "Emulation Controls"
+# 기어: 실행 후 60초 안에 Virtual Console에서 D로 변경 (Gear Selection)
 adb shell am instrument -w -e class io.chamamothanmal.vehiclestate.VehicleStateMonitorDeviceTest#receivesGearFromPleosSdk -e expectGear NOT_PARK io.chamamothanmal.vehiclestate.test/androidx.test.runner.AndroidJUnitRunner
-# 도어: 실행 후 60초 안에 Virtual Console에서 운전석 도어 열기
+# 도어: 실행 후 60초 안에 Virtual Console에서 운전석 도어 열기 (Door Position › Front left › Open)
 adb shell am instrument -w -e class io.chamamothanmal.vehiclestate.VehicleStateMonitorDeviceTest#receivesDoorFromPleosSdk -e expectDoor OPEN io.chamamothanmal.vehiclestate.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
@@ -140,8 +141,9 @@ adb shell am instrument -w -e class io.chamamothanmal.vehiclestate.VehicleStateM
 | 실제 신호 판정 (P단, 도어 닫힘, 현재 위치=목적지) | `Allow(source=SDK, arrival=GPS)` |
 | 시작 직후 16초 된 마지막 위치로 판정 | `Hold(LOCATION_STALE)` |
 | `stop()` 후 판정 | `Hold(GEAR_UNKNOWN)` |
-| Virtual Console 기어 D 변경 반영 | **미확인** (명령줄 VHAL 주입 불가, 수동 확인 필요) |
-| Virtual Console 도어 열림 반영 | **미확인** (SDK `setDoorPosition`은 성공 응답하지만 에뮬레이터 값이 바뀌지 않음, 수동 확인 필요) |
+| Virtual Console 기어 P → D 변경 반영 (Emulation Controls › Gear Selection) | 성공 — 약 4초 안에 `NOT_PARK` |
+| Virtual Console 운전석 도어 열림 반영 (Emulation Controls › Door Position › Front left › Open) | 성공 — 약 4초 안에 `OPEN [ROW_1_LEFT]`, 판정 `Hold(DOOR_OPEN)` |
+| SDK `setDoorPosition`으로 도어 열기 | 성공 응답하지만 에뮬레이터 값이 바뀌지 않음 (Virtual Console로만 변경 가능) |
 | 내비 도착 이벤트 `onDestinationArrived` | **미확인** (에뮬레이터 내비가 이동을 인식하지 못함) |
 | 체크섬 맞춘 NMEA로 내비 위치 갱신 | 실패 (위 "내비 위치를 쓰지 않는 이유") |
 
