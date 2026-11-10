@@ -38,14 +38,64 @@ data class LocationReading(
     val elapsedRealtimeMs: Long,
 )
 
+enum class DoorStatus { CLOSED, OPEN, UNKNOWN }
+
+/**
+ * 모든 지원 도어를 합친 상태. 하나라도 열리면 OPEN, 모두 닫혔다고 확인되면 CLOSED, 그 외는 UNKNOWN.
+ *
+ * @property openDoors 열린 도어 이름(예: ROW_1_LEFT). 화면·로그 표시용.
+ * @property elapsedRealtimeMs 가장 오래된 도어 값의 수신 시각.
+ */
+data class DoorReading(
+    val status: DoorStatus,
+    val openDoors: List<String>,
+    val source: SignalSource,
+    val elapsedRealtimeMs: Long,
+)
+
+/**
+ * 내비게이션(NaviHelper) 상태. 목적지 이름·주소는 저장하지 않고 좌표만 둔다.
+ *
+ * @property destinationLatitude 현재 내비 목적지. 경로가 없으면 null.
+ * @property arrivedAtElapsedMs 현재 목적지에 대한 onDestinationArrived 수신 시각. 목적지가 바뀌거나 취소되면 null.
+ */
+data class NaviState(
+    val destinationLatitude: Double?,
+    val destinationLongitude: Double?,
+    val arrivedAtElapsedMs: Long?,
+    val source: SignalSource,
+    val elapsedRealtimeMs: Long,
+) {
+    val hasDestination: Boolean
+        get() = destinationLatitude != null && destinationLongitude != null
+}
+
+/** 세션 종료 등 즉시 대응이 필요한 내비 이벤트. */
+enum class NaviEvent {
+    /** 새 목적지 정보 수신 (경로 시작 포함) */
+    DESTINATION_SET,
+    /** 목적지 변경 — 서버 세션 종료 사유 DESTINATION_CHANGED */
+    DESTINATION_CHANGED,
+    /** 경로 취소 — 서버 세션 종료 사유 CANCELLED */
+    ROUTE_CANCELLED,
+    /** 경로 안내 종료 (도착 후에도 올 수 있음) */
+    ROUTE_ENDED,
+    /** 목적지 도착 */
+    ARRIVED,
+}
+
 /**
  * 한 시점의 차량 상태. 값이 없으면 null이며, 그 이유는 *Error에 남는다.
  */
 data class VehicleSnapshot(
     val gear: GearReading? = null,
     val location: LocationReading? = null,
+    val door: DoorReading? = null,
+    val navi: NaviState? = null,
     val gearError: String? = null,
     val locationError: String? = null,
+    val doorError: String? = null,
+    val naviError: String? = null,
 )
 
 /** 메시지 장소. 서버 메시지의 latitude·longitude·radiusMeters(기본 100m)에 대응한다. */

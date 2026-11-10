@@ -22,19 +22,25 @@
 | 신호 | 사용 API | 지원 여부 | 권한 | 에뮬레이터 검증 | 대체 mock |
 | --- | --- | --- | --- | --- | --- |
 | 위치 | Android `LocationManager` GPS (1초) | 지원 | `ACCESS_FINE_LOCATION` (실행 중 허용, **앱 사용 중에만**) | 수신·`geo fix` 변경 반영 성공. 화면이 없으면 거부됨 | `setMockLocation` (디버그 빌드) |
-| 위치 (내비) | NaviHelper `getCurrentLocationInfo` | 응답은 옴 | `pleos.car.permission.NAVI_ROUTE` | 좌표 갱신 안 됨. 기본 내비가 에뮬레이터 NMEA를 체크섬 불일치로 거부. 위치 판정에 쓰지 않음 | — |
-| 내비 목적지·도착 | NaviHelper `onDestinationInfo`·`onDestinationArrived`·`onDestinationChanged`·`onRouteCancelled` | SDK 3.0.5에 이벤트 존재 확인 | `pleos.car.permission.NAVI_ROUTE` | 미실행 | 미구현 (현재는 메시지 장소 반경으로 도착 판정) |
+| 위치 (내비) | NaviHelper `getCurrentLocationInfo` | 응답은 옴 | `pleos.car.permission.NAVI_ROUTE` | 좌표 갱신 안 됨. 기본 내비가 NMEA를 체크섬 불일치로 거부하며, 체크섬을 맞춘 `geo nmea`로도 해결 안 됨(에뮬레이터·기본 내비 문제). 위치 판정에 쓰지 않음 | — |
+| 내비 목적지 | NaviHelper `getDestinationInfo` → `onDestinationInfo` | 지원 | `pleos.car.permission.NAVI_ROUTE` | 경로 요청 후 목적지 좌표 수신 성공, 다른 장소 메시지는 `DESTINATION_MISMATCH` 보류 | `setMockNavi` (디버그 빌드) |
+| 내비 변경·취소 | `onDestinationChanged`·`onRouteCancelled`·`onRouteEnded` | 지원 | `pleos.car.permission.NAVI_ROUTE` | 경로 취소 → `ROUTE_CANCELLED` 이벤트·목적지 해제 성공. 목적지 변경은 미실행 | — |
+| 내비 도착 | `onDestinationArrived` | SDK에 이벤트 존재 | `pleos.car.permission.NAVI_ROUTE` | 미확인 (에뮬레이터 내비가 이동을 인식하지 못함). GPS 미확인 시 보조 근거로만 사용 | `setMockNavi(..., arrived=true)` |
 | 주차·P단 | Vehicle `Gear` 변경 알림 + 3초 재조회 | 지원 (SDK 2.3.2에서 지원 중단 표시, `GEAR_SELECTION` 프로퍼티 권장) | `pleos.car.permission.CAR_DRIVE` | `GEAR_PARK` 수신 성공. Virtual Console D 변경 반영은 수동 확인 대기 | `setMockGear` (디버그 빌드) |
-| 도어 | Vehicle `Door.registerDoorPosition` | SDK에 API 존재 확인 | 미확인 | 미실행 | 미구현 |
+| 도어 | Vehicle `Door` 지원 도어별 변경 알림 + 3초 재조회 | 지원 (에뮬레이터 지원 도어 6개) | `pleos.car.permission.CAR_DOORS` | `CLOSED` 수신 성공. 열림 반영은 Virtual Console 수동 확인 대기(SDK `setDoorPosition`은 성공 응답하나 값 불변) | `setMockDoor` (디버그 빌드) |
 
 ## 상태 → 재생 판정 (재민 제안, 규혁·민석 검토 필요)
 
-- 출처: 실제 콜백은 `SDK`, 앱이 주입한 값은 `MOCK`. 하나라도 MOCK이면 판정 결과의 `source`는 `MOCK`이며, 릴리스 빌드에서는 MOCK을 허용하지 않습니다.
+판정 순서: 기어 → 도어 → 내비 목적지 일치 → 도착 → 출처. 상세는 [`:vehicle-state` README](../../apps/vehicle/android/vehicle-state/README.md#판정-규칙-playbackgate).
+
+- 출처: 실제 콜백은 `SDK`, 앱이 주입한 값은 `MOCK`. 판정에 쓴 값 중 하나라도 MOCK이면 결과 `source`는 `MOCK`이며, 릴리스 빌드에서는 MOCK을 허용하지 않습니다.
 - 기어 값이 없음·GEAR_UNKNOWN·10초 초과면 보류(`STATE_UNKNOWN`), P단이 아니면 보류(`DRIVING`).
-- 위치 값이 없음·15초 초과·정확도 100m 초과면 보류(`STATE_UNKNOWN`).
-- 메시지 장소 `radiusMeters` 밖이면 도착 전으로 보고 서버 이벤트를 보내지 않습니다(PENDING 유지).
-- 조회 실패 시 이전 값을 지워, 오래된 P단 값으로 재생하지 않습니다.
-- 이 판정은 차량 상태만 다룹니다. 문 닫힘·오디오 포커스·서버 세션/메시지 유효성은 별도로 확인합니다.
+- 도어가 하나라도 열리면 보류(`DOOR_OPEN`), 도어 값이 없음·일부 미확인·10초 초과면 보류(`STATE_UNKNOWN`).
+- 내비 목적지가 메시지 장소 반경 밖이면 보류하고 이벤트 대신 세션 종료(`DESTINATION_CHANGED`)로 처리합니다.
+- 도착: 새 GPS(15초 이내, 정확도 100m 이내)가 메시지 장소 `radiusMeters` 안이면 도착. 반경 밖이면 내비 도착 이벤트가 있어도 도착 전(PENDING 유지, 이벤트 없음). GPS를 확인할 수 없을 때만 일치하는 목적지의 30분 이내 내비 도착 이벤트를 인정하고, 그것도 없으면 보류(`STATE_UNKNOWN`).
+- 목적지 변경·경로 취소 이벤트는 앱에 즉시 전달되며, 앱은 재생을 멈추고 세션 종료(`DESTINATION_CHANGED`/`CANCELLED`)를 보고합니다.
+- 조회 실패 시 이전 값을 지워, 오래된 P단·닫힘 값으로 재생하지 않습니다.
+- 이 판정은 차량 상태만 다룹니다. 오디오 포커스·서버 세션/메시지 유효성은 별도로 확인합니다.
 
 미확인·오래된 차량 상태의 처리와 주행 중 기능 제한을 명시한다. SDK 지원 여부를 코드나 문서에서 추정해 보장하지 않는다.
 

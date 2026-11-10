@@ -21,6 +21,7 @@ android {
 
 dependencies {
     implementation(libs.pleos.vehicle)
+    implementation(libs.pleos.navihelper)
 
     testImplementation(libs.junit)
 
