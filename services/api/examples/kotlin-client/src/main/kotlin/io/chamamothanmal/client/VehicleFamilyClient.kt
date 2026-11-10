@@ -45,12 +45,12 @@ class VehicleFamilyClient(baseUrl: String, tokenProvider: () -> String,
     fun disconnect(vehicleId: String) = call("DELETE", "/vehicles/${id(vehicleId)}/connection")
     fun deleteMessage(messageId: String) = call("DELETE", "/messages/${id(messageId)}")
     fun register(audio: File, vehicleId: String, placeName: String, latitude: Double, longitude: Double,
-        requestId: String, radiusMeters: Int = 100, expiresInHours: Int = 24): String {
+        requestId: String, radiusMeters: Int = 100, expiresInHours: Int = 24, address: String = ""): String {
         require(audio.length() in 1..5_242_880)
         val boundary = "voice-${UUID.randomUUID()}"
         val bytes = java.io.ByteArrayOutputStream()
         fun write(value: String) = bytes.write(value.toByteArray(Charsets.UTF_8))
-        for((key, value) in linkedMapOf("vehicleId" to id(vehicleId), "placeName" to placeName,
+        for((key, value) in linkedMapOf("vehicleId" to id(vehicleId), "placeName" to placeName, "address" to address,
             "latitude" to latitude, "longitude" to longitude, "radiusMeters" to radiusMeters, "expiresInHours" to expiresInHours)) {
             write("--$boundary\r\nContent-Disposition: form-data; name=\"$key\"\r\n\r\n$value\r\n")
         }

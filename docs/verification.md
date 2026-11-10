@@ -1,3 +1,9 @@
+# 2026-11-11 장소 검색 및 차량 연결 검증
+
+현재 추가 작업은 docs/place-search-vehicle-integration-work-log.md에 기록했습니다. 서버50개·Android51개 단위 테스트, Lint 태스크와 APK 빌드를 통과했습니다. 도구 환경의 임시 복사본/결과 디렉터리 변경과 Lint 캐시 경고를 기록했으며, 실제 카카오 키·에뮬레이터·스피커·Supabase002는 아직 검증하지 않았습니다. 기존 아래 기록은 이전 단계의 이력입니다.
+
+---
+
 # 최종 기획서 v3 검증 기준
 
 2026-11-09 /api/v2 가족·차량·이동·만료·답장 규격을 추가했습니다. 현재 실행·검증은 services/api/README.md와 docs/contracts/backend-api-v0.2.md를 따릅니다. Gradle check bootJar는 v1 회귀·v2 API·Supabase 로컬 HTTP 대역 테스트와 Kotlin 컴파일을 수행합니다. scripts/smoke-test.ps1은 Kotlin v2 실제 HTTP 흐름이며 실제 SDK/재생이 아닙니다. 실제 Supabase PostgreSQL SQL 적용·Auth/Storage·Android는 별도 확인합니다.

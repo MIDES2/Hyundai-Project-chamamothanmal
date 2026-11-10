@@ -3,9 +3,9 @@
  * Keep requestId and payload identical on retry. Do not set multipart Content-Type manually.
  */
 export async function registerVoice({ baseUrl, token, audio, vehicleId, placeName,
-  latitude, longitude, expiresInHours = 24, radiusMeters = 100, requestId }) {
+  latitude, longitude, address = '', expiresInHours = 24, radiusMeters = 100, requestId }) {
   const form = new FormData();
-  for (const [name, value] of Object.entries({ vehicleId, placeName, latitude, longitude,
+  for (const [name, value] of Object.entries({ vehicleId, placeName, address, latitude, longitude,
     expiresInHours, radiusMeters })) form.append(name, String(value));
   form.append('audio', audio, 'voice.wav');
   const response = await fetch(`${baseUrl.replace(/\/$/, '')}/api/v2/messages`, {

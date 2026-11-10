@@ -63,9 +63,11 @@
 | `ARRIVED` | 재생 판정을 다시 실행 (`evaluate`) |
 | `ROUTE_ENDED` | 도착 후에도 올 수 있음. 단독으로 세션을 끝내지 않음 |
 
-## 규혁님 앱에 연결할 지점 (아직 연결하지 않음)
+## 기존 MainActivity 연결 계획 (이전 참고)
 
-`:app`은 이 모듈에 아직 의존하지 않습니다. 연결할 때 바꿀 곳은 아래와 같습니다. 줄 번호는 `app/src/main/java/com/example/malttuk/MainActivity.kt` 현재 버전 기준입니다.
+2026-11-11: :app이 :vehicle-state에 의존하고 별도 ServerIntegrationActivity에서 이 모듈과 서버·오디오·UX를 연결했습니다. [실행 안내](../SERVER_INTEGRATION.md)를 참고합니다. 아래 표는 기존 로컬 MainActivity를 대상으로 작성된 이전 연결 계획으로 보존하며 새 화면 구현 현황을 뜻하지 않습니다.
+
+기존 로컬 시험 화면을 직접 교체할 때의 참고 지점은 아래와 같습니다. 줄 번호는 `app/src/main/java/com/example/malttuk/MainActivity.kt` 현재 버전 기준입니다.
 
 | # | 위치 | 현재 | 연결 방법 |
 | --- | --- | --- | --- |

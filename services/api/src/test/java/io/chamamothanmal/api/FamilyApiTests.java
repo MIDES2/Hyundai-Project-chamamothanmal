@@ -99,6 +99,16 @@ class FamilyApiTests {
         assertThat(detail.get("replies").get(0).get("kind").asText()).isEqualTo("THANK_YOU");
         carSend("/vehicles/"+vehicle+"/sessions",startBody(mid),409);
     }
+    @Test void selectedAddressIsSavedAndReturnedWithoutBreakingOldRequests() throws Exception {
+        setup();String key=uuid();
+        var request=multipart("/api/v2/messages").file(new MockMultipartFile("audio","test.wav","audio/wav",wav()))
+            .header("Authorization",S).header("Idempotency-Key",key).param("vehicleId",vehicle)
+            .param("placeName","가상대학교 정문").param("address","시험시 가상로 1").param("latitude","37").param("longitude","127");
+        String mid=body(mvc.perform(request).andExpect(status().isCreated())).get("messageId").asText();
+        mvc.perform(get("/api/v2/messages/"+mid).header("Authorization",S)).andExpect(status().isOk())
+            .andExpect(jsonPath("$.address").value("시험시 가상로 1"));
+        message(); // previous clients may omit the address
+    }
     @Test void codesAreSingleUseAndExpire() throws Exception {
         setup(); String code=send("/families/"+family+"/invitations",S,Map.of(),200).get("code").asText();
         send("/families/join",O,Map.of("code",code),200);

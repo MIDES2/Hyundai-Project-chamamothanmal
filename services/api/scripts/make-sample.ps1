@@ -1,4 +1,4 @@
-param([string]$OutputPath = (Join-Path $PSScriptRoot '../uploads/sample.wav'))
+param([string]$OutputPath = (Join-Path $PSScriptRoot '../uploads/sample.wav'), [switch]$Tone)
 $ErrorActionPreference = 'Stop'
 # One second of synthetic silence, PCM 16-bit mono 16kHz; no personal recording.
 $resolvedOutput = [IO.Path]::GetFullPath($OutputPath)
@@ -20,6 +20,13 @@ try {
     $writer.Write([int16]16)
     $writer.Write([Text.Encoding]::ASCII.GetBytes('data'))
     $writer.Write([int]$payloadBytes)
-    $writer.Write((New-Object byte[] $payloadBytes))
+    if ($Tone) {
+        for ($sampleIndex = 0; $sampleIndex -lt $sampleRate; $sampleIndex++) {
+            $sampleValue = [int16](4000 * [Math]::Sin(2 * [Math]::PI * 440 * $sampleIndex / $sampleRate))
+            $writer.Write($sampleValue)
+        }
+    } else {
+        $writer.Write((New-Object byte[] $payloadBytes))
+    }
 } finally { $writer.Dispose() }
-Write-Host 'Created synthetic WAV in the local ignored uploads folder.'
+Write-Host 'Created synthetic WAV in the local ignored uploads folder (tone only when -Tone is selected).'

@@ -26,7 +26,7 @@
 
 ## 2 DB 구조 적용
 
-`supabase/migrations/001_vehicle_family.sql`을 읽고 테스트 프로젝트 SQL Editor에서 실행합니다. 원격 DB에 실제 쓰기가 발생하므로 대상 프로젝트를 확인한 뒤 직접 적용합니다. 서버는 원격 스키마를 자동 생성/삭제하지 않습니다.
+`supabase/migrations/001_vehicle_family.sql` 적용 후 `002_message_address.sql`도 순서대로 읽고 테스트 프로젝트 SQL Editor에서 실행합니다. 원격 DB에 실제 쓰기가 발생하므로 대상 프로젝트를 확인한 뒤 직접 적용합니다. 서버는 원격 스키마를 자동 생성/삭제하지 않습니다.
 
 - 별도 chamamothanmal 스키마에 cm_* 테이블을 생성합니다.
 - 기존 H2 v1 테이블을 삭제하지 않습니다. 로컬의 v2 테이블도 별도로 생성됩니다.
@@ -85,3 +85,6 @@ Storage에서 voices 버킷을 만들고 **Public을 끕니다**. 파일 제한�
 - [DB 연결 방식](https://supabase.com/docs/guides/database/connecting-to-postgres)
 - [비공개 Storage 접근 제어](https://supabase.com/docs/guides/storage/security/access-control)
 - [서버에서 사용자 삭제](https://supabase.com/docs/reference/javascript/auth-admin-deleteuser)
+
+
+장소 검색의 KAKAO_REST_API_KEY는 Supabase 키와 별개입니다. 서버의 로컬 설정에만 넣습니다. 주소 검색 결과는 선택한 메시지의 address 컬럼에만 저장합니다. 002 SQL을 적용하지 않은 원격 DB로 새 버전을 배포하지 않습니다.

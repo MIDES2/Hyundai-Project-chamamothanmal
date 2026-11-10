@@ -52,3 +52,6 @@ services/api/data/
 .DS_Store
 Thumbs.db
 *.swp
+
+# Optional local-only audio for the original vehicle prototype screen
+apps/vehicle/android/app/src/main/res/raw/*.wav

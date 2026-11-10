@@ -4,6 +4,11 @@ plugins {
 
 android {
     namespace = "com.example.malttuk"
+    useLibrary("android.car", false)
+    // Reuse the tested transport contract; do not copy the desktop smoke runner into Android.
+    sourceSets.named("main") {
+        kotlin.directories += "../../../../services/api/examples/kotlin-client/src/main/kotlin"
+    }
     compileSdk {
         version = release(37)
     }
@@ -33,6 +38,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":vehicle-state"))
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)

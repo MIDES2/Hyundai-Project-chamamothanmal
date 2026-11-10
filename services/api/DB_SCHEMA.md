@@ -36,3 +36,8 @@ DB와 외부 파일 저장은 하나의 원자 트랜잭션이 아닙니다. DB 
 ## 기존 v1
 
 app_users/send_permissions/messages/playback_events는 local 회귀 시험을 위해 남겼습니다. v2의 차량·이동 구조로 자동 변환하지 않으며 실제 앱은 /api/v2를 사용합니다. 원격 프로필에는 v1 테이블을 만들지 않고 인증 필터가 v1 요청을 차단합니다.
+
+
+## 선택한 장소 주소
+
+cm_messages.address는 최대500자 선택 필드입니다. 예전 클라이언트가 생략해도 등록됩니다. local schema-v2.sql은 기존 테이블에 컬럼을 추가하며, Supabase는 별도 002_message_address.sql을 적용합니다. 검색 결과 전체는 저장하지 않습니다.
