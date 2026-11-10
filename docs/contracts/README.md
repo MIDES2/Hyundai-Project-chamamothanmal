@@ -16,11 +16,25 @@
 | 공통 오류 | 성공/실패/보류·재시도·중복 요청 및 재생 방지·오류 코드 | 전원 |
 
 ## SDK 지원 확인표
-| 신호 | 지원 여부 | 권한 | 실환경 검증 | 대체 mock |
-| --- | --- | --- | --- | --- |
-| 위치 | 미확인 | 미확인 | 미실행 | 미구현 |
-| 내비 목적지·도착 | 미확인 | 미확인 | 미실행 | 미구현 |
-| 주차·P단 | 미확인 | 미확인 | 미실행 | 미구현 |
+
+2026-11-10 기준, Pleos Connect v2.1.0 에뮬레이터(API 34)에서 확인했습니다. 실차는 검증하지 않았습니다. 구현은 [`:vehicle-state`](../../apps/vehicle/android/vehicle-state/README.md) 모듈에 있습니다.
+
+| 신호 | 사용 API | 지원 여부 | 권한 | 에뮬레이터 검증 | 대체 mock |
+| --- | --- | --- | --- | --- | --- |
+| 위치 | Android `LocationManager` GPS (1초) | 지원 | `ACCESS_FINE_LOCATION` (실행 중 허용, **앱 사용 중에만**) | 수신·`geo fix` 변경 반영 성공. 화면이 없으면 거부됨 | `setMockLocation` (디버그 빌드) |
+| 위치 (내비) | NaviHelper `getCurrentLocationInfo` | 응답은 옴 | `pleos.car.permission.NAVI_ROUTE` | 좌표 갱신 안 됨. 기본 내비가 에뮬레이터 NMEA를 체크섬 불일치로 거부. 위치 판정에 쓰지 않음 | — |
+| 내비 목적지·도착 | NaviHelper `onDestinationInfo`·`onDestinationArrived`·`onDestinationChanged`·`onRouteCancelled` | SDK 3.0.5에 이벤트 존재 확인 | `pleos.car.permission.NAVI_ROUTE` | 미실행 | 미구현 (현재는 메시지 장소 반경으로 도착 판정) |
+| 주차·P단 | Vehicle `Gear` 변경 알림 + 3초 재조회 | 지원 (SDK 2.3.2에서 지원 중단 표시, `GEAR_SELECTION` 프로퍼티 권장) | `pleos.car.permission.CAR_DRIVE` | `GEAR_PARK` 수신 성공. Virtual Console D 변경 반영은 수동 확인 대기 | `setMockGear` (디버그 빌드) |
+| 도어 | Vehicle `Door.registerDoorPosition` | SDK에 API 존재 확인 | 미확인 | 미실행 | 미구현 |
+
+## 상태 → 재생 판정 (재민 제안, 규혁·민석 검토 필요)
+
+- 출처: 실제 콜백은 `SDK`, 앱이 주입한 값은 `MOCK`. 하나라도 MOCK이면 판정 결과의 `source`는 `MOCK`이며, 릴리스 빌드에서는 MOCK을 허용하지 않습니다.
+- 기어 값이 없음·GEAR_UNKNOWN·10초 초과면 보류(`STATE_UNKNOWN`), P단이 아니면 보류(`DRIVING`).
+- 위치 값이 없음·15초 초과·정확도 100m 초과면 보류(`STATE_UNKNOWN`).
+- 메시지 장소 `radiusMeters` 밖이면 도착 전으로 보고 서버 이벤트를 보내지 않습니다(PENDING 유지).
+- 조회 실패 시 이전 값을 지워, 오래된 P단 값으로 재생하지 않습니다.
+- 이 판정은 차량 상태만 다룹니다. 문 닫힘·오디오 포커스·서버 세션/메시지 유효성은 별도로 확인합니다.
 
 미확인·오래된 차량 상태의 처리와 주행 중 기능 제한을 명시한다. SDK 지원 여부를 코드나 문서에서 추정해 보장하지 않는다.
 

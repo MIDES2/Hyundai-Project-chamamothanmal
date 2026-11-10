@@ -41,7 +41,43 @@ git diff --check
 실제 차량 상태, 서버 연동, 다른 오디오의 개입 동작은 별도 검증이 필요합니다.
 생성된 예제 단위 테스트의 통과만으로 재생 정책 검증을 완료했다고 판단하지 않습니다.
 
-## (이전) Pleos 연동 검증용 프로젝트 — 재민, `:vehicle-state` 모듈로 이전 예정
+## 차량 상태 모듈 `:vehicle-state` (재민)
+
+같은 `apps/vehicle/android` 프로젝트의 Android Library 모듈입니다. Pleos Vehicle SDK 기어와 Android GPS 위치를 받아, 미확인·오래된 상태에서는 재생을 허용하지 않는 판정(`PlaybackGate`)을 제공합니다. 사용법, 판정 규칙, `:app`에 연결할 지점과 에뮬레이터 검증 결과는 [vehicle-state/README.md](android/vehicle-state/README.md)에 있습니다.
+
+- `:app`은 아직 이 모듈에 의존하지 않습니다. 연결은 규혁 담당 화면에서 진행합니다.
+- 모듈이 Pleos SDK를 쓰므로 `settings.gradle.kts`에 Pleos 저장소(`https://nexus-playground.pleos.ai/repository/maven-releases/`, `ai.pleos.playground` 그룹만)를 추가했습니다.
+- 모듈 Manifest가 `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `pleos.car.permission.CAR_DRIVE`를 선언하므로, 연결 후 앱의 병합 Manifest에 함께 들어갑니다.
+
+## 빌드와 검사
+
+| 항목 | 값 |
+| --- | --- |
+| Gradle / AGP | 9.6.0 (Wrapper) / 9.5.1, Kotlin은 AGP 내장 |
+| compileSdk / minSdk | 37 / 28 |
+| Java 호환 / Gradle 실행 JDK | 11 / Android Studio 내장 JBR 25 |
+| 실행 대상 | Pleos Connect v2.1.0 에뮬레이터 (API 34, x86_64) |
+
+`apps/vehicle/android`에서 실행합니다. Android Studio 밖에서는 `JAVA_HOME`(Android Studio `jbr`)과 `ANDROID_HOME`(Android SDK)을 지정하거나 `local.properties`를 둡니다.
+
+```powershell
+.\gradlew.bat :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
+.\gradlew.bat :vehicle-state:testDebugUnitTest :vehicle-state:lintDebug
+.\gradlew.bat :vehicle-state:connectedDebugAndroidTest   # 에뮬레이터 실행 중
+```
+
+**경로에 한글이 있을 때** (예: `바탕 화면`): AGP가 빌드를 막고, `-Pandroid.overridePathCheck=true`로 넘겨도 단위 테스트가 `ClassNotFoundException`으로 실패합니다. 영문 경로로 옮기거나, 임시 드라이브를 연결해 그 경로에서 실행합니다. junction(`mklink /J`)은 Gradle이 원래 경로로 풀어서 효과가 없습니다.
+
+```powershell
+subst Q: "<저장소 경로>"
+cd Q:\apps\vehicle\android
+# ...검사 실행...
+subst Q: /d
+```
+
+## (이전) Pleos 연동 검증용 프로젝트 — 재민, 정리 예정
+
+기어·GPS 코드는 `:vehicle-state`로 이전했습니다. NaviHelper 확인 화면을 포함한 테스트 앱 이전은 보류 중이며, 이 중복 Gradle 루트(`apps/vehicle/app`, `apps/vehicle/*.gradle.kts`, `gradlew*`, `gradle/`)는 Virtual Console 기어 변경 반영을 모듈에서 확인한 뒤 삭제합니다. 삭제 후에도 원본은 커밋 `5e5f07f`에서 볼 수 있습니다.
 
 이 폴더가 Gradle 루트입니다. Android Studio에서 `apps/vehicle` 폴더를 엽니다.
 

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Android 표준 GPS 위치. 실행 중 사용자 허용이 필요하다. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- Pleos Vehicle SDK 기어 조회·수신 (Gear API의 @RequiresPermission 값) -->
+    <uses-permission android:name="pleos.car.permission.CAR_DRIVE" />
+
+</manifest>
