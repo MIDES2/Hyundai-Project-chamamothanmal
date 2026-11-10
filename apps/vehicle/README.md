@@ -6,7 +6,42 @@ Android 앱의 개발 언어는 Java·Kotlin입니다. 규혁은 화면과 음�
 
 Gradle 프로젝트 생성 시 JDK와 SDK 버전, 빌드 변형, 테스트·Lint·APK 빌드 명령을 이 문서에 기록합니다. [검증 기준](../../docs/verification.md)
 
-## 현재 Android 프로젝트 (Pleos 연동 검증용, 재민)
+## 차마못한말 Android 프로토타입
+
+- Android 프로젝트 위치: `apps/vehicle/android`
+- Android Studio에서 해당 폴더를 열고 Gradle 동기화 후 `app`을 실행합니다.
+- 개발 중인 기존 패키지명은 `com.example.malttuk`입니다.
+- 실행 확인 환경: Pleos Connect v2.1.0, Android API 34 에뮬레이터.
+- 서버 조회와 실제 차량 신호는 아직 연결하지 않았습니다.
+- 상세 화면의 도착·주차 체크는 개발용 모의 조건이며 실제 차량 상태를 뜻하지 않습니다.
+
+### 로컬 테스트 음성 준비
+
+현재 코드는 `R.raw.chamamothanmal_test` 리소스를 참조합니다.
+빌드 전에 개인정보가 없는 테스트용 PCM WAV 파일을 다음 위치에 직접 준비합니다.
+
+`apps/vehicle/android/app/src/main/res/raw/chamamothanmal_test.wav`
+
+해당 파일은 Git에서 제외하며 실제 사용자 녹음을 커밋하지 않습니다.
+파일이 없으면 현재 프로젝트는 빌드되지 않습니다.
+
+### 검사 명령
+
+저장소 루트에서 실행합니다.
+
+```powershell
+.\apps\vehicle\android\gradlew.bat -p apps/vehicle/android :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
+python scripts/check_repository.py
+git diff --check
+```
+
+### 수동 확인 범위
+
+개발자 로컬 확인: 메시지 상세 진입, 테스트 음성 재생 및 재생 상태 표시.
+실제 차량 상태, 서버 연동, 다른 오디오의 개입 동작은 별도 검증이 필요합니다.
+생성된 예제 단위 테스트의 통과만으로 재생 정책 검증을 완료했다고 판단하지 않습니다.
+
+## (이전) Pleos 연동 검증용 프로젝트 — 재민, `:vehicle-state` 모듈로 이전 예정
 
 이 폴더가 Gradle 루트입니다. Android Studio에서 `apps/vehicle` 폴더를 엽니다.
 
