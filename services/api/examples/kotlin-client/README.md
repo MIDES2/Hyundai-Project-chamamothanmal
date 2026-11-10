@@ -69,3 +69,8 @@ val receipt = client.report(sessionId, messageId, event)
 완료 후 주차 상태에서 client.reply(sessionId,messageId,replyId,"THANK_YOU",true) 또는 ARRIVED_SAFELY를 사용합니다. 초기에는 버튼 답장만 지원합니다. 차량 연결 해제·프로필 변경·권한 오류 시 기기 토큰·세션·음성 캐시를 지웁니다. 서버가 오프라인 캐시를 직접 지우지는 못합니다. 실제 HTTP 허용은 debug에 한정하고 운영은 HTTPS를 사용합니다.
 
 [API v0.2](../../../../docs/contracts/backend-api-v0.2.md) · [팀 연결 순서](../../TEAM_INTEGRATION.md)
+
+
+## 실제 차량 앱 연결
+
+apps/vehicle/android의 :app이 src/main/kotlin의 공통 통신 두 파일을 소스 경로로 재사용합니다. 복사본을 따로 수정하지 않습니다. PC 전용 SmokeMain.kt는 src/cli/kotlin으로 분리해 APK에 포함하지 않습니다. [차량 서버 연결 화면 안내](../../../../apps/vehicle/android/SERVER_INTEGRATION.md)를 참고하세요. scripts/prepare-vehicle-demo.ps1은 가상 계정 전용이며 1초 합성 소리와 일회용 연결 코드를 준비합니다. 실제 사용자 토큰으로는 이 준비 모드가 실행되지 않습니다.

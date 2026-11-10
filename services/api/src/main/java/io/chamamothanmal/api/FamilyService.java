@@ -80,11 +80,12 @@ public class FamilyService {
     }
     private Map<String,Object> messageView(Map<String,Object> row) {
         Map<String,Object> view=new LinkedHashMap<>();
-        for(String key:List.of("id","senderId","vehicleId","placeName","latitude","longitude","radiusMeters",
+        for(String key:List.of("id","senderId","vehicleId","placeName","address","latitude","longitude","radiusMeters",
             "audioBytes","audioSeconds","createdAt","expiresAt","completedAt","deletedAt")) view.put(key,row.get(key));
         view.put("messageId",view.remove("id")); view.put("requireParked",true);
         return view;
     }
+    public void checkActiveUser(String user) { actor(user); }
     public Map<String,Object> me(String user) {
         actor(user); return Map.of("userId",user,"families",db.list(
             "SELECT f.id AS family_id,f.name,m.can_send,f.owner_id FROM cm_members m JOIN cm_families f ON f.id=m.family_id WHERE m.user_id=? AND m.active=TRUE AND f.active=TRUE",user));
@@ -175,6 +176,8 @@ public class FamilyService {
         var audio=validator.validate(form.audio());
         String fingerprint=hash(String.join("|",form.vehicleId(),form.placeName(),form.latitude().toString(),form.longitude().toString(),
             String.valueOf(radius),String.valueOf(hours),audio.sha256()));
+        String address=form.address()==null?"":form.address().strip();
+        if(!address.isEmpty()) fingerprint=hash(fingerprint+"|address:"+address);
         var previous=db.list("SELECT * FROM cm_messages WHERE sender_id=? AND request_id=?",user,key);
         if(!previous.isEmpty()) {
             var old=previous.get(0);
@@ -189,8 +192,8 @@ public class FamilyService {
             }
         });
         long created=now(), expiry=created+hours*3_600_000L;
-        db.update("INSERT INTO cm_messages(id,sender_id,vehicle_id,request_id,request_hash,place_name,latitude,longitude,radius_meters,audio_name,audio_bytes,audio_seconds,created_at,expires_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-            id,user,form.vehicleId(),key,fingerprint,form.placeName(),form.latitude(),form.longitude(),radius,name,audio.bytes().length,audio.seconds(),created,expiry);
+        db.update("INSERT INTO cm_messages(id,sender_id,vehicle_id,request_id,request_hash,place_name,latitude,longitude,radius_meters,audio_name,audio_bytes,audio_seconds,created_at,expires_at,address) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            id,user,form.vehicleId(),key,fingerprint,form.placeName(),form.latitude(),form.longitude(),radius,name,audio.bytes().length,audio.seconds(),created,expiry,address);
         return Map.of("messageId",id,"replayed",false,"expiresAt",expiry);
     }
     public List<Map<String,Object>> sent(String user) {

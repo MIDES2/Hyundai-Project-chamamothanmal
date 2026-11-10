@@ -10,6 +10,12 @@
 | 재민 | API v0.2의 이동·이벤트 부분 | 목적지·주차·도어·UX·오디오 확인, 변경 시 중단·세션 종료, SDK와 MOCK 구분 |
 | 민석 | 스모크 시험·통합 기준 | 웹→서버→차량→답장, 만료/철회/재시도·실제/모의 구분 |
 
+## 추가된 조원 코드 연결
+
+차량 :app에 :vehicle-state와 공통 Kotlin API 클라이언트를 연결했고 기존 로컬 시험 화면을 보존한 채 ServerIntegrationActivity를 추가했습니다. 실제 에뮬레이터 조작/SDK/스피커 검증은 별도입니다. [연동 실행 안내](../../apps/vehicle/android/SERVER_INTEGRATION.md)를 따릅니다.
+
+웹 UI는 아직 저장소에 없습니다. 웹은 /api/v2/places로 장소명·주소·좌표를 받고 사용자가 선택한 값을 등록 API에 보냅니다. [검색 규격](PLACE_SEARCH.md)과 examples/web 두 함수를 전달합니다. 실제 카카오 REST 키가 필요합니다.
+
 ## 우선 실행
 
 1. 기존 서버를 Ctrl+C 종료한 뒤 services/api에서 scripts/start-local.ps1 실행. 기존 .env·DB는 유지합니다.

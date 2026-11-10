@@ -4,6 +4,13 @@
 
 주차·도착·문·오디오·UX 제한은 차량 앱이 확인합니다. 서버가 지원하는 것은 권한·메시지·이동 연결·음성 전달·결과·답장 저장입니다. API의 true/source 보고값은 실제 차량 상태를 증명하지 않습니다.
 
+## 2026-11-11 추가 연결
+
+- 인증된 `GET /api/v2/places`로 카카오 장소명·주소 검색을 지원합니다. REST 키는 개인 .env의 KAKAO_REST_API_KEY로 설정합니다. 현재 실제 키가 없어 원격 검색은 미검증입니다. [장소 검색 안내](PLACE_SEARCH.md)
+- 메시지 등록에 선택 address를 추가했습니다. Supabase 사용자는 002_message_address.sql을 먼저 적용합니다. 기존 로컬 데이터는 보존합니다.
+- 차량 앱에 별도 서버 연결 화면과 :vehicle-state 판정·실제 파일 다운로드/MediaPlayer·오디오/UX·재생 결과/답장 연결을 추가했습니다. [차량 앱 시험 안내](../../apps/vehicle/android/SERVER_INTEGRATION.md)
+- 서버 실행 중 `scripts/prepare-vehicle-demo.ps1`로 합성 소리와 차량 연결 코드를 준비합니다. 실제 사용자·SDK·스피커 시험을 대신하지 않습니다.
+
 ## 바로 시작
 
 기존 서버가 실행 중이면 해당 터미널에서 Ctrl+C로 종료한 뒤 다시 켭니다. 기존 .env와 DB·음성 파일을 지우지 않습니다.

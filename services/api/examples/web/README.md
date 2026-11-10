@@ -26,3 +26,8 @@ PCM WAV 최대15초·5MiB만 지원합니다. WebM/MP3/M4A의 이름만 WAV로 �
 기본 CORS는 localhost/127.0.0.1:5173입니다. 주소가 다르면 API_CORS_ORIGINS에 정확한 웹 origin을 추가하고 서버를 재시작합니다. 다른 PC/휴대폰은 서버의 LAN 주소·바인딩·방화벽을 확인해야 합니다. 이 예제는 UI·브라우저 권한/녹음 동작 검증을 대신하지 않습니다.
 
 [API v0.2](../../../../docs/contracts/backend-api-v0.2.md)
+
+
+## 장소 검색 추가
+
+`place-search.js`의 searchPlaces({baseUrl,token,query,type,page,size,signal})는 서버 /api/v2/places를 호출합니다. type은 keyword 또는 address입니다. 결과의 items를 목록에 표시하고 사용자가 선택한 placeName,address,latitude,longitude를 registerVoice에 함께 전달합니다. 카카오 키는 웹에 넣지 않습니다. [상세 안내](../../PLACE_SEARCH.md)

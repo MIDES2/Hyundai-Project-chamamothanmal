@@ -57,3 +57,6 @@ CREATE TABLE IF NOT EXISTS cm_replies (
 CREATE TABLE IF NOT EXISTS cm_auth_deletions (
  user_id VARCHAR(64) PRIMARY KEY REFERENCES cm_users(id), created_at BIGINT NOT NULL, completed BOOLEAN NOT NULL DEFAULT FALSE
 );
+
+-- Additive upgrade: keep existing messages and old v2 clients working.
+ALTER TABLE cm_messages ADD COLUMN IF NOT EXISTS address VARCHAR(500);

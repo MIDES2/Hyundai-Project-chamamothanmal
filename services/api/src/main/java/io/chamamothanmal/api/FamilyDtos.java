@@ -14,7 +14,7 @@ public final class FamilyDtos {
         @NotNull @DecimalMin("-90") @DecimalMax("90") Double latitude,
         @NotNull @DecimalMin("-180") @DecimalMax("180") Double longitude,
         @Min(10) @Max(1000) Integer radiusMeters, @Min(1) @Max(24) Integer expiresInHours,
-        @NotNull MultipartFile audio) { }
+        @NotNull MultipartFile audio, @Size(max=500) String address) { }
     public enum Source { MANUAL, SDK, MOCK }
     public record Start(@NotBlank String requestId, @NotNull Boolean consent,
         @NotNull Boolean parkedConfirmed,

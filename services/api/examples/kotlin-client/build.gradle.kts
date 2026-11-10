@@ -15,3 +15,6 @@ application { mainClass.set("io.chamamothanmal.client.SmokeMainKt") }
 tasks.withType<Test>().configureEach { useJUnitPlatform() }
 tasks.named<JavaExec>("run") { workingDir = rootProject.projectDir }
 dependencyLocking { lockAllConfigurations() }
+
+// Desktop-only runner must not be compiled into the Android application.
+kotlin.sourceSets.named("main") { kotlin.srcDir("src/cli/kotlin") }
