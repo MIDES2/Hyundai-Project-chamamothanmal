@@ -11,6 +11,10 @@
 - 실시간 위치 궤적은 저장하지 않습니다. 메시지 장소와 사용자가 선택한 이동 목적지만 저장합니다.
 - SDK/MOCK/MANUAL은 클라이언트 보고 출처입니다. 서버가 차량 상태의 진위를 증명하지 않습니다.
 
+## 장소 검색 (2026-11-11 추가)
+
+GET /places?query=검색어&type=keyword&page=1&size=10. 사용자 인증 필요, 차량 토큰 불필요. type keyword/주소 address, query1~100자, page1~45,size1~15. 응답 items에 provider,id,placeName,address,roadAddress,lotAddress,latitude,longitude를 반환하고 type,page,size,totalCount,pageableCount,hasNext를 제공합니다. 카카오 x는 longitude, y는 latitude입니다. 서버 키가 없으면503 PLACE_SEARCH_NOT_CONFIGURED이며 임의 결과로 대체하지 않습니다. 웹이 사용자의 선택을 받은 뒤 메시지 등록에 장소·주소·좌표를 보냅니다. [전체 안내](../../services/api/PLACE_SEARCH.md)
+
 ## 가족과 차량
 
 | 메서드·주소 | 요청 | 응답/의미 |
@@ -40,6 +44,7 @@ POST /messages: multipart/form-data + `Idempotency-Key: <UUID>`.
 | --- | --- |
 | vehicleId | 허용된 가족 차량 ID |
 | placeName | 필수 1~120자, 공백만 불가 |
+| address | 선택 최대500자, 선택한 장소 주소. 생략 가능 |
 | latitude / longitude | 필수 유한 숫자, -90~90 / -180~180 |
 | radiusMeters | 기본100, 10~1000m |
 | expiresInHours | 기본24, 1~24시간 |
@@ -48,7 +53,7 @@ POST /messages: multipart/form-data + `Idempotency-Key: <UUID>`.
 응답: 201 신규/200 동일 재시도 `{messageId,replayed,expiresAt}`. 같은 발신자·같은 키의 다른 내용409. 수신자 ID·scheduledDate는 v2에서 사용하지 않습니다. 녹음 형식 변환은 웹 담당자와 합의가 필요합니다.
 
 - GET /messages/sent: 본인의 삭제되지 않은 최근 최대100개 메시지, items.
-- GET /messages/{id}: 발신자 본인만 상세 조회. messageId,senderId,vehicleId,placeName,latitude,longitude,radiusMeters,requireParked=true,audioBytes,audioSeconds,createdAt,expiresAt,completedAt,deletedAt,deliveries,replies. 저장 경로·음성 원문·정확한 차량 현재 위치는 반환하지 않습니다.
+- GET /messages/{id}: 발신자 본인만 상세 조회. messageId,senderId,vehicleId,placeName,address,latitude,longitude,radiusMeters,requireParked=true,audioBytes,audioSeconds,createdAt,expiresAt,completedAt,deletedAt,deliveries,replies. 저장 경로·음성 원문·정확한 차량 현재 위치는 반환하지 않습니다.
 - DELETE /messages/{id}: 발신자가 취소·삭제, 204. 즉시 새 접근을 차단하고 정리 작업에서 파일 삭제.
 - GET /vehicles/{id}/messages: 차량 토큰 필요. 유효·미완료 메시지 후보 최대100개. 수신 선택 전에는 목록 메타데이터만 제공하며 음성은 이동 연결 후에만 다운로드합니다.
 
