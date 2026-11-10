@@ -91,6 +91,16 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
+        val listContent = (findViewById<LinearLayout>(R.id.main).getChildAt(0) as ScrollView).getChildAt(0) as LinearLayout
+        listContent.addView(Button(this).apply {
+            text = "서버 메시지 연결"
+            minHeight = dp(64)
+            setOnClickListener {
+                startActivity(android.content.Intent(this@MainActivity,
+                    com.example.malttuk.integration.ServerIntegrationActivity::class.java))
+            }
+        }, 1)
+
         findViewById<View>(R.id.messageCard).setOnClickListener {
             showTestMessageDetails()
         }
@@ -287,9 +297,13 @@ class MainActivity : AppCompatActivity() {
 
             newPlayer.setAudioAttributes(audioAttributes)
 
-            resources.openRawResourceFd(
-                R.raw.chamamothanmal_test
-            ).use { descriptor ->
+            @android.annotation.SuppressLint("DiscouragedApi")
+            val sampleId = resources.getIdentifier("chamamothanmal_test", "raw", packageName)
+            if (sampleId == 0) {
+                stopPlayback("로컬 시험 음성이 없습니다. 서버 메시지 연결 화면을 사용하세요")
+                return
+            }
+            resources.openRawResourceFd(sampleId).use { descriptor ->
                 newPlayer.setDataSource(
                     descriptor.fileDescriptor,
                     descriptor.startOffset,
