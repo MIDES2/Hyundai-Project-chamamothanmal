@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 기기 테스트 전용: 내비 경로를 요청·취소해 이벤트를 만들기 위한 권한. 모듈 본체에는 없음. -->
+    <uses-permission android:name="pleos.car.permission.NAVI_ROUTE_SEARCH" />
+
+    <application>
+        <!-- 위치 권한이 "앱 사용 중에만 허용"이므로 기기 테스트 동안 화면을 띄워 포그라운드를 유지한다. -->
+        <activity
+            android:name="io.chamamothanmal.vehiclestate.ForegroundHostActivity"
+            android:exported="false" />
+    </application>
+
+</manifest>
