@@ -1,5 +1,12 @@
 # 2026-11-11 장소 검색 및 차량 연결 검증
 
+## 2026-11-11 Friend account messaging MVP
+
+- Backend Gradle `check` passed with 51 tests using the existing Gradle cache and local test data.
+- The new test covers exact account friend addition, duplicate upload retry, recipient-only WAV download, download without completion, sender receipt, seven-day archive inclusion and recipient deletion.
+- The repository checker and Git diff check could not complete because Git could not access its working tree from the tool environment.
+- The web and Android clients have not been wired to these routes. Real vehicle signals, playback, and remote Supabase migration remain unverified.
+
 현재 추가 작업은 docs/place-search-vehicle-integration-work-log.md에 기록했습니다. 서버50개·Android51개 단위 테스트, Lint 태스크와 APK 빌드를 통과했습니다. 도구 환경의 임시 복사본/결과 디렉터리 변경과 Lint 캐시 경고를 기록했으며, 실제 카카오 키·에뮬레이터·스피커·Supabase002는 아직 검증하지 않았습니다. 기존 아래 기록은 이전 단계의 이력입니다.
 
 ---

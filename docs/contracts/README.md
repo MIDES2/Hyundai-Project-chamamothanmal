@@ -129,3 +129,5 @@
 
 
 2026-11-11 추가: /api/v2/places 장소명·주소 검색과 메시지 address 선택 필드. 웹은 선택한 결과를 등록 API에 보내고, 차량 :app은 공통 클라이언트와 :vehicle-state를 사용하는 별도 서버 연결 화면을 제공합니다. 실제 카카오·SDK·스피커는 별도 검증합니다.
+
+Friend-account MVP: [API contract](friend-messages-mvp.md).
