@@ -36,7 +36,7 @@ class FamilyApiTests {
     @Autowired FamilyService service;
     String family,vehicle,deviceToken;
     @BeforeEach void reset() throws Exception {
-        for(String table:List.of("cm_auth_deletions","cm_replies","cm_events","cm_deliveries","cm_sessions","cm_messages","cm_devices","cm_codes","cm_vehicles","cm_members","cm_families","cm_users")) db.update("DELETE FROM "+table);
+        for(String table:List.of("cm_friend_messages","cm_friends","cm_auth_deletions","cm_replies","cm_events","cm_deliveries","cm_sessions","cm_messages","cm_devices","cm_codes","cm_vehicles","cm_members","cm_families","cm_users")) db.update("DELETE FROM "+table);
         Files.createDirectories(DIR);
         try(var files=Files.list(DIR)) { for(Path f:files.toList()) Files.delete(f); }
     }
@@ -81,6 +81,41 @@ class FamilyApiTests {
     String start(String mid) throws Exception { return carSend("/vehicles/"+vehicle+"/sessions",startBody(mid),200).get("sessionId").asText(); }
     String path(String sid,String mid) { return "/sessions/"+sid+"/messages/"+mid; }
     Map<String,Object> event(String status,long version,String id) { return Map.of("eventId",id,"status",status,"expectedVersion",version,"source","MOCK","reason","USER_ACTION"); }
+    @Test void friendMessagesKeepAudioPrivateAndSeparateDownloadFromCompletion() throws Exception {
+        mvc.perform(get("/api/v2/me").header("Authorization",R)).andExpect(status().isOk());
+        mvc.perform(put("/api/v2/friends").header("Authorization",S).contentType(MediaType.APPLICATION_JSON)
+            .content("{\"accountId\":\"demo-recipient\"}")).andExpect(status().isOk());
+        String base="/api/v2/friend-messages";
+        String requestId=uuid();
+        String message="""
+            {"recipientId":"demo-recipient","placeName":"Test pin","latitude":37,
+             "longitude":127,"listeningMode":"PRIVATE"}
+            """;
+        var metadata=new MockMultipartFile("message","", "application/json",message.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        var audio=new MockMultipartFile("audio","test.wav","audio/wav",wav());
+        var first=body(mvc.perform(multipart(base).file(metadata).file(audio)
+            .header("Authorization",S).header("Idempotency-Key",requestId)).andExpect(status().isOk()));
+        String id=first.get("id").asText();
+        mvc.perform(multipart(base).file(metadata).file(audio).header("Authorization",S)
+            .header("Idempotency-Key",requestId)).andExpect(status().isOk()).andExpect(jsonPath("$.id").value(id));
+        mvc.perform(get(base+"/"+id+"/audio").header("Authorization",O)).andExpect(status().isNotFound());
+        mvc.perform(get(base+"/"+id+"/audio").header("Authorization",R))
+            .andExpect(status().isOk()).andExpect(content().bytes(wav()));
+        mvc.perform(get(base+"/inbox").header("Authorization",R))
+            .andExpect(jsonPath("$[0].id").value(id)).andExpect(jsonPath("$[0].completedAt").isEmpty());
+        mvc.perform(put(base+"/"+id+"/completion").header("Authorization",R))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.completedAt").isNumber());
+        mvc.perform(get(base+"/sent").header("Authorization",S))
+            .andExpect(jsonPath("$[0].completedAt").isNumber());
+        mvc.perform(get(base+"/archive").header("Authorization",R))
+            .andExpect(jsonPath("$[0].id").value(id));
+        String declined=body(mvc.perform(multipart(base).file(metadata).file(audio)
+            .header("Authorization",S).header("Idempotency-Key",uuid())).andExpect(status().isOk())).get("id").asText();
+        mvc.perform(delete(base+"/"+declined).header("Authorization",R)).andExpect(status().isNoContent());
+        mvc.perform(get(base+"/"+declined+"/audio").header("Authorization",R)).andExpect(status().isNotFound());
+        mvc.perform(get(base+"/inbox").header("Authorization",R)).andExpect(jsonPath("$.length()").value(0));
+        mvc.perform(get(base+"/archive").header("Authorization",R)).andExpect(jsonPath("$.length()").value(1));
+    }
     @Test void fullFamilyVehicleSessionReplyFlow() throws Exception {
         setup(); String mid=message(), sid=start(mid);
         mvc.perform(get("/api/v2"+path(sid,mid)).header("Authorization",R).header("X-Vehicle-Token",deviceToken))
