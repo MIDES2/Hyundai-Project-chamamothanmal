@@ -12,6 +12,8 @@
 
 서버 경유 [장소명·주소 검색](services/api/PLACE_SEARCH.md)과 선택 주소 저장을 추가했고, 조원의 차량 화면에 [서버 연결 시험 화면](apps/vehicle/android/SERVER_INTEGRATION.md)을 연결했습니다. 웹 UI 소스는 아직 없으며 실제 카카오 검색은 서버 REST 키 설정 후 검증합니다. 실제 새 차량 화면·SDK·스피커 실행은 별도 확인합니다.
 
+휴대폰·차량 **React UI 원본 및 실행 방법**은 [apps/web/README.md](apps/web/README.md)를 확인하세요. 휴대폰 코드는 `apps/web/src/mobile/`, 차량 UI 코드는 `apps/web/src/infotainment/`에 있습니다.
+
 ## 1. 문제 정의
 
 발신자가 특정 장소와 관련된 음성 메시지를 남겨도, 일반 메시지에서는 수신자가 그 장소에 도착했는지 또는 지금 재생할 수 있는 상태인지 알기 어렵습니다. 차마못한말은 메시지에 지정된 조건과 차량 상태를 연결해, 수신자가 차량에서 적절한 때에 음성을 들을 수 있는 흐름을 검증합니다.
