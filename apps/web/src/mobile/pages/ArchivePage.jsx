@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Icon } from "../Icons.jsx";
+import { Icon } from "../../shared/Icons.jsx";
 import MessageCard from "../components/MessageCard.jsx";
 export default function ArchivePage({ items, onDelete, onLogin }) {
   const [editing, setEditing] = useState(false),

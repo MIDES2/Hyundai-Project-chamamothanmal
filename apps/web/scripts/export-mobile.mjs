@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 const dist = path.resolve("dist"),
   entry = path.join(dist, "index.html");
-let html = fs.readFileSync(entry, "utf8");
+let html = fs.readFileSync(entry, "utf8").replace(/\r\n/g, "\n");
 const jsPath = html.match(/<script[^>]*src="([^"]+)"[^>]*><\/script>/)?.[1];
 const cssPath = html.match(/<link[^>]*href="([^"]+\.css)"[^>]*>/)?.[1];
 if (!jsPath || !cssPath) throw new Error("Mobile build entry not found");

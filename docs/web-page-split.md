@@ -23,3 +23,10 @@
 
 ## 남은 작업
 실제 인증·기기 간 API 전송·실차 SDK·차량 음성은 연결 전이다. release APK 빌드/서명/설치는 팀 Android 담당 작업이며 이번 검사에 포함되지 않는다. Kakao 실제 키가 없어 실제 지도 API 요청 성공은 검사하지 않았다.
+
+## 2026-11-12: 앱 종류별 폴더 정리
+- 휴대폰 원본 전체를 apps/web/src/mobile로 이동했다.
+- 차량 브라우저 UI 원본 전체를 apps/web/src/infotainment로 이동했다. Infotainment는 인포테인먼트의 영어 표기이다.
+- 공통 Icons.jsx와 원본 SVG는 src/shared로 모았다. HTML 진입점과 모든 상대 import, README의 경로를 함께 수정했다.
+- 화면·상태·스타일 동작은 유지했다. build, build:vehicle, lint, 독립 HTML 생성과 기존 Playwright 모바일/차량 회귀 검사가 모두 통과했다.
+- 실제 SDK/API/APK 작업 범위는 변경하지 않았다.

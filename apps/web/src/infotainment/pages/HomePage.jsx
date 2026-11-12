@@ -1,7 +1,7 @@
 import IntroPage from "./IntroPage.jsx";
 import OfferPage from "./OfferPage.jsx";
 import EmptyHomePage from "./EmptyHomePage.jsx";
-import { Car, Icon } from "../../Icons.jsx";
+import { Car, Icon } from "../../shared/Icons.jsx";
 export default function HomePage({
   screen,
   setScreen,

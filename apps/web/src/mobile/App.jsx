@@ -11,7 +11,7 @@ import NotificationList, {
   readNotifications,
 } from "./Notifications.jsx";
 import { useEffect, useRef, useState } from "react";
-import { Icon } from "./Icons.jsx";
+import { Icon } from "../shared/Icons.jsx";
 import CarLogin from "./components/CarLogin.jsx";
 import SignupPage from "./pages/SignupPage.jsx";
 import FriendsPage from "./pages/FriendsPage.jsx";

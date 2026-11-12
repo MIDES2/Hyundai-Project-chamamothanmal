@@ -1,4 +1,4 @@
-import { Car } from "../Icons.jsx";
+import { Car } from "../../shared/Icons.jsx";
 export default function CarLogin({ onClick, dark = false }) {
   return (
     <button

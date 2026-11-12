@@ -1,4 +1,4 @@
-import { Icon } from "../Icons.jsx";
+import { Icon } from "../../shared/Icons.jsx";
 import Player from "./Player.jsx";
 import dateText from "../utils/dateText.js";
 export default function MessageCard({

@@ -1,4 +1,4 @@
-import { Icon } from "../../Icons.jsx";
+import { Icon } from "../../shared/Icons.jsx";
 import Back from "../components/Back.jsx";
 export default function MessagesPage({ home, deleted, replay, setDeleted }) {
   return (

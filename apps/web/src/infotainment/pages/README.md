@@ -9,4 +9,4 @@
 - 마음 목록·보관함·설정: `MessagesPage.jsx`, `ArchivePage.jsx`, `SettingsPage.jsx`
 
 화면 전환·타이머·자동 보관 상태는 `../VehicleApp.jsx`, 스타일은 `../vehicle.css`에 있습니다.
-실행 방법과 실제 차량 연동 범위는 [웹 README](../../../README.md)를 확인하세요. 휴대폰 화면은 [src/pages](../../pages/)에 있습니다.
+실행 방법과 실제 차량 연동 범위는 [웹 README](../../../README.md)를 확인하세요. 휴대폰 화면은 [mobile/pages](../../mobile/pages/)에 있습니다.

@@ -7,7 +7,7 @@ import MessagesPage from "./pages/MessagesPage.jsx";
 import ArchivePage from "./pages/ArchivePage.jsx";
 import SettingsPage from "./pages/SettingsPage.jsx";
 import { useEffect, useRef, useState } from "react";
-import { Car } from "../Icons.jsx";
+import { Car } from "../shared/Icons.jsx";
 import StatusBar from "./StatusBar.jsx";
 import DockIcon from "./DockIcon.jsx";
 import {

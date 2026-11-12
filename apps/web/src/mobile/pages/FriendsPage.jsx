@@ -1,6 +1,6 @@
 import { useState } from "react";
 import AccountHeader from "../components/AccountHeader.jsx";
-import { Icon } from "../Icons.jsx";
+import { Icon } from "../../shared/Icons.jsx";
 import { findProfile, roleName } from "../accounts.js";
 export default function FriendsPage({
   profile,

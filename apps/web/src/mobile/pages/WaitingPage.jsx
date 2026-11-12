@@ -1,4 +1,4 @@
-import { Icon } from "../Icons.jsx";
+import { Icon } from "../../shared/Icons.jsx";
 import MessageCard from "../components/MessageCard.jsx";
 export default function WaitingPage({ shownWaiting, edit, goLogin }) {
   return (

@@ -1,4 +1,4 @@
-import { Icon } from "../../Icons.jsx";
+import { Icon } from "../../shared/Icons.jsx";
 import Back from "../components/Back.jsx";
 import RetentionPicker from "../RetentionPicker.jsx";
 import { expiresAt } from "../archive.js";

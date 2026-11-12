@@ -1,4 +1,4 @@
-﻿# 차마못한말 — 휴대폰·차량 React UI
+# 차마못한말 — 휴대폰·차량 React UI
 
 장소·날짜·상대를 정해 마음을 남기는 휴대폰 화면과, 목적지 도착 후 듣는 차량 화면입니다. 이 폴더는 React 브라우저 프로토타입이며 Android/Pleos 앱 원본은 `apps/vehicle`에서 별도로 개발합니다.
 
@@ -20,7 +20,9 @@ macOS/Linux에서는 `npm.cmd` 대신 `npm`을 사용합니다. Vite가 출력�
 
 ## 화면별 수정 위치
 
-| 휴대폰 화면 | 파일 (`src/pages/`) |
+휴대폰 앱은 **[src/mobile](src/mobile/)**, 차량 앱은 **[src/infotainment](src/infotainment/)** 폴더에 있습니다. 두 앱이 함께 쓰는 아이콘·이미지만 `src/shared/`에 둡니다.
+
+| 휴대폰 화면 | 파일 (`src/mobile/pages/`) |
 | --- | --- |
 | 첫 시작 | `SplashPage.jsx` |
 | 로그인 및 회원가입 선택 | `WelcomePage.jsx` |
@@ -33,7 +35,7 @@ macOS/Linux에서는 `npm.cmd` 대신 `npm`을 사용합니다. Vite가 출력�
 | 보관함: 선택 삭제 | `ArchivePage.jsx` |
 | MY | `MyPage.jsx` |
 
-| 차량 화면 | 파일 (`src/vehicle/pages/`) |
+| 차량 화면 | 파일 (`src/infotainment/pages/`) |
 | --- | --- |
 | 첫 인사 | `IntroPage.jsx` |
 | 도착 후 마음 듣기·포기하기 | `OfferPage.jsx` |
@@ -47,11 +49,11 @@ macOS/Linux에서는 `npm.cmd` 대신 `npm`을 사용합니다. Vite가 출력�
 | 보관함·보관 기한·삭제 | `ArchivePage.jsx` |
 | 설정 | `SettingsPage.jsx` |
 
-이동과 도착은 동일한 SVG 애니메이션을 유지해야 하므로 `JourneyPage.jsx`를 공유합니다. `src/App.jsx`는 휴대폰 상태·화면 전환, `src/vehicle/VehicleApp.jsx`는 차량 상태·타이머·자동 보관을 관리합니다. 화면 컴포넌트는 props로 상태와 동작을 전달받습니다.
+이동과 도착은 동일한 SVG 애니메이션을 유지해야 하므로 `JourneyPage.jsx`를 공유합니다. `src/mobile/App.jsx`는 휴대폰 상태·화면 전환, `src/infotainment/VehicleApp.jsx`는 차량 상태·타이머·자동 보관을 관리합니다. 화면 컴포넌트는 props로 상태와 동작을 전달받습니다.
 
-공통 UI는 `src/components/`(달력·플레이어·메시지 카드·버튼·계정 헤더), 차량 공통 UI는 `src/vehicle/components/`에 있습니다. 스타일은 기존 `src/styles.css`, `src/vehicle/vehicle.css`를 유지합니다. 원본 차량 SVG는 `src/assets/`에 있습니다.
+공통 UI는 `src/mobile/components/`(달력·플레이어·메시지 카드·버튼·계정 헤더), 차량 공통 UI는 `src/infotainment/components/`에 있습니다. 스타일은 기존 `src/mobile/styles.css`, `src/infotainment/vehicle.css`를 유지합니다. 원본 차량 SVG는 `src/shared/assets/`에 있습니다.
 
-별도 기능: `PlacePicker.jsx`(장소), `RecipientPicker.jsx`(친구 필터), `Notifications.jsx`(알림), `accounts.js`(데모 계정), `maps/kakao.js`(지도), `vehicle/archive.js`(보관 기한), `vehicle/StatusBar.jsx`(실시간 시계), `vehicle/DockIcon.jsx`(런처 아이콘).
+별도 기능: `PlacePicker.jsx`(장소), `RecipientPicker.jsx`(친구 필터), `Notifications.jsx`(알림), `accounts.js`(데모 계정), `maps/kakao.js`(지도), `infotainment/archive.js`(보관 기한), `infotainment/StatusBar.jsx`(실시간 시계), `infotainment/DockIcon.jsx`(런처 아이콘).
 
 ## 필요한 설정과 테스트 환경
 

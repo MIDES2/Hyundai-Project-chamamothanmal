@@ -1,4 +1,4 @@
-import { Icon } from "../Icons.jsx";
+import { Icon } from "../../shared/Icons.jsx";
 import { roleName } from "../accounts.js";
 export default function MyPage({ profile, setFriendQuery, setPage, setModal }) {
   return (

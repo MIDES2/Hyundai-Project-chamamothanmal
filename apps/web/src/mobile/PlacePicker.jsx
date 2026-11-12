@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Icon } from "./Icons.jsx";
+import { Icon } from "../shared/Icons.jsx";
 import { loadKakaoMaps, searchKakaoPlaces } from "./maps/kakao.js";
 
 const defaultPlace = {

@@ -1,4 +1,4 @@
-import { Icon } from "../Icons.jsx";
+import { Icon } from "../../shared/Icons.jsx";
 import CarLogin from "../components/CarLogin.jsx";
 import Primary from "../components/Primary.jsx";
 export default function LoginPage({
