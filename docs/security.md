@@ -8,3 +8,11 @@
 - 테스트는 가상 수신자와 샘플 음성으로 진행합니다. 토큰·음성·정밀 좌표는 Git과 테스트 로그에 남기지 않습니다.
 
 유림은 서버 구현과 API 계약을 담당하고 민석은 보안 테스트와 통합 검증을 조율합니다. [통합 검증](../tests/integration/README.md)
+
+## 수신자 권한 검사 구현
+
+[MessageAccessPolicy](../services/api/security/README.md)는 메시지 열람과 음성 다운로드의
+수신자 비교를 담당한다. 인증 정보 누락은 REQUIRE_AUTHENTICATION, 수신자 불일치 및
+누락된 메시지는 DENY, 일치하는 수신자는 ALLOW로 판단한다.
+서버의 401/404 처리는 API 계층에서 계약에 맞춰 연결한다.
+현재 Java 단위 검사 16개가 통과했으며 실제 API에 적용됐는지는 미검증이다.
