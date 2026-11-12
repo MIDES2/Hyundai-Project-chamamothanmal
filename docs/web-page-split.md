@@ -30,3 +30,11 @@
 - 공통 Icons.jsx와 원본 SVG는 src/shared로 모았다. HTML 진입점과 모든 상대 import, README의 경로를 함께 수정했다.
 - 화면·상태·스타일 동작은 유지했다. build, build:vehicle, lint, 독립 HTML 생성과 기존 Playwright 모바일/차량 회귀 검사가 모두 통과했다.
 - 실제 SDK/API/APK 작업 범위는 변경하지 않았다.
+
+## develop 병합 충돌 해결
+- README.md는 최신 develop의 팀 통합 내용을 유지하고 모바일/인포테인먼트 소스 위치 안내를 추가했다.
+- apps/web/README.md는 실행·폴더 안내와 develop의 백엔드 장소 검색·통합 검증 링크를 함께 유지했다.
+- 두 독립 HTML은 최신 원본에서 생성한 버전을 유지했다. develop에서의 변경은 공백 정리뿐임을 비교했다.
+- apps/vehicle, services, .github, docs/contracts는 origin/develop과 동일함을 확인했다.
+- 모바일·차량 build, lint, Playwright 주요 동작, 저장소 검사, staged diff 공백 검사가 통과했다.
+- develop 직접 푸시 대신 기존 feature/web-prototype PR의 충돌 해결 커밋으로 게시한다.
