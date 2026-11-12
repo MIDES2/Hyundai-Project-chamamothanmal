@@ -1,22 +1,26 @@
-# 말뚝 2.0 (MalTtuk 2.0)
+# 차마못한말 (chamamothanmal)
 
 **장소와 시간에 맞춰 차량에서 듣는 음성 메시지**
 
-말뚝 2.0은 발신자가 모바일 웹에서 장소, 날짜, 수신자를 지정해 음성을 남기고, 수신자가 차량 앱에서 메시지를 받아 재생하는 프로젝트입니다. 차량의 도착 및 주차 상태를 재생 조건에 반영하는 것을 목표로 합니다.
+차마못한말은 가족이 모바일 웹에서 차량·목적지·유효기간을 지정해 음성을 남기고, 운전자가 수신을 선택한 이동에서 도착·주차 조건에 따라 함께 듣고 답장하는 프로젝트입니다. 현재 서버는 [API v0.2](docs/contracts/backend-api-v0.2.md)를 구현했고 실제 UI·Pleos 연동은 별도 검증합니다.
 
 **핵심 흐름** `등록 → 수신 → 차량 상태 확인 → 재생 또는 보류`
 
-**현재 상태** 저장소 및 개발 환경 구성 단계입니다. 아래 기능은 프로토타입 목표이며, 실제 차량 신호 지원과 차량 스피커 재생은 검증 예정입니다.
+**현재 상태** 가족·차량·이동·음성·답장 백엔드와 로컬 시험을 구현했습니다. Supabase 연결 모드는 준비했으나 실제 원격 프로젝트·UI·SDK·스피커 재생은 검증 예정입니다.
+
+## 2026-11-11 추가 연결
+
+서버 경유 [장소명·주소 검색](services/api/PLACE_SEARCH.md)과 선택 주소 저장을 추가했고, 조원의 차량 화면에 [서버 연결 시험 화면](apps/vehicle/android/SERVER_INTEGRATION.md)을 연결했습니다. 웹 UI 소스는 아직 없으며 실제 카카오 검색은 서버 REST 키 설정 후 검증합니다. 실제 새 차량 화면·SDK·스피커 실행은 별도 확인합니다.
 
 ## 1. 문제 정의
 
-발신자가 특정 장소와 관련된 음성 메시지를 남겨도, 일반 메시지에서는 수신자가 그 장소에 도착했는지 또는 지금 재생할 수 있는 상태인지 알기 어렵습니다. 말뚝 2.0은 메시지에 지정된 조건과 차량 상태를 연결해, 수신자가 차량에서 적절한 때에 음성을 들을 수 있는 흐름을 검증합니다.
+발신자가 특정 장소와 관련된 음성 메시지를 남겨도, 일반 메시지에서는 수신자가 그 장소에 도착했는지 또는 지금 재생할 수 있는 상태인지 알기 어렵습니다. 차마못한말은 메시지에 지정된 조건과 차량 상태를 연결해, 수신자가 차량에서 적절한 때에 음성을 들을 수 있는 흐름을 검증합니다.
 
 ## 2. 개발 목표
 
 | 영역 | 1차 프로토타입 범위 |
 | --- | --- |
-| 모바일 웹 | 장소·날짜·수신자 선택, 음성 녹음 또는 파일 첨부, 미리 듣기와 등록 |
+| 모바일 웹 | 차량·목적지·유효기간 선택, 음성 녹음 또는 파일 첨부, 미리 듣기와 등록 |
 | 서버·DB | 메시지 등록·조회, 음성 업로드·다운로드, 재생 결과 갱신 규격 협의 |
 | 차량 앱 | 메시지 목록·상세, 파일 수신, 재생·건너뛰기·중복 재생 방지 |
 | 차량 상태 | Pleos SDK 지원 신호와 권한 확인, 도착·주차 상태 전달, 모의 이벤트 분리 |
@@ -26,7 +30,7 @@
 
 ```mermaid
 flowchart TD
-    Web["모바일 웹"] -->|"장소·날짜·수신자·음성 등록"| API["서버 · Java/Kotlin"]
+    Web["모바일 웹"] -->|"차량·목적지·유효기간·음성 등록"| API["서버 · Java/Kotlin"]
     API <-->|"메시지 정보 및 처리 상태"| DB["DB"]
     API -->|"메시지 조회·음성 수신"| App["차량 앱 · Android · Java/Kotlin"]
     Pleos["Pleos SDK 또는 모의 이벤트"] -->|"도착·주차 상태"| App
@@ -45,17 +49,17 @@ API 요청·응답, 음성 파일 형식, 차량 이벤트와 재생 허용 기�
 | 담당 | 구현 및 검증 영역 | 기술 | 작업 위치 | 초기 브랜치 |
 | --- | --- | --- | --- | --- |
 | 나경 | 모바일 웹과 음성 등록 화면 | Java·Kotlin 기반 구성 협의 | [apps/web](apps/web/) | `feature/web-prototype` |
-| 유림 | 메시지 API, 데이터 저장과 음성 송수신 | Java·Kotlin, DB | [services/api](services/api/) | `feature/backend-api` |
+| 유림 | 메시지 API, 데이터 저장과 음성 송수신 | Java 17 호환 · Spring Boot · Gradle · local H2 / Supabase 연결 모드 | [services/api](services/api/) | `feature/backend-api` |
 | 규혁 | 차량 화면, 음성 수신 및 재생 | Android, Java·Kotlin | [apps/vehicle](apps/vehicle/) | `feature/vehicle-playback` |
 | 재민 | 차량 상태 신호, 권한 확인과 모의 이벤트 | Java·Kotlin, Pleos SDK | [apps/vehicle](apps/vehicle/) | `feature/pleos-integration` |
 | 민석 | 통합 테스트, APK 빌드·설치, CI | GitHub Actions, Android 빌드 도구 | [tests/integration](tests/integration/), [docs](docs/) | `chore/integration-qa` |
 
-차량 앱과 Pleos 연동은 하나의 Android 프로젝트를 공유합니다. 개발 언어는 Java·Kotlin을 기준으로 합니다. 모바일 웹 제공 방식, 서버 프레임워크, DB 엔진, JDK·Gradle 버전과 SDK 실행 환경은 팀에서 확인한 뒤 확정합니다.
+차량 앱과 Pleos 연동은 하나의 Android 프로젝트를 공유합니다. 개발 언어는 Java·Kotlin을 기준으로 합니다. 서버는 Java·Spring Boot·Gradle이며 로컬 H2와 Supabase Auth·DB·Storage 연결 모드를 제공합니다. 실제 원격 연결은 별도 검증하며 실행은 [서버 README](services/api/README.md)를 따릅니다. 이는 통합 시험용 구현 선택이며 팀 전체의 최종 스택 합의를 대신하지 않습니다. 모바일 웹 제공 방식과 Android JDK·Gradle 버전·SDK 실행 환경은 별도로 확정합니다.
 
 ## 5. 저장소 구조
 
 ```text
-Hyundai-Project-MalTtuk/
+Hyundai-Project-chamamothanmal/
 ├── apps/
 │   ├── web/               # 모바일 웹
 │   └── vehicle/           # 차량 앱과 Pleos 연동

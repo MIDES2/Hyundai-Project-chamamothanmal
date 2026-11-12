@@ -9,7 +9,10 @@
 
 유림은 서버 구현과 API 계약을 담당하고 민석은 보안 테스트와 통합 검증을 조율합니다. [통합 검증](../tests/integration/README.md)
 
-## 수신자 권한 검사 구현
+## 초기 v0.1 수신자 권한 검사 구현
+
+아래 독립 함수는 초기 초안용이다. 현재 가족·차량·세션·친구 권한은
+서버 구현과 API 테스트를 기준으로 검증하며 이 함수로 대체하지 않는다.
 
 [MessageAccessPolicy](../services/api/security/README.md)는 메시지 열람과 음성 다운로드의
 수신자 비교를 담당한다. 인증 정보 누락은 REQUIRE_AUTHENTICATION, 수신자 불일치 및

@@ -41,6 +41,9 @@ build/
 uploads/
 logs/
 *.log
+# Legacy API build outputs and local H2 data
+services/api/target/
+services/api/data/
 # Editors / OS
 .idea/
 .vscode/*
@@ -49,3 +52,6 @@ logs/
 .DS_Store
 Thumbs.db
 *.swp
+
+# Optional local-only audio for the original vehicle prototype screen
+apps/vehicle/android/app/src/main/res/raw/*.wav
