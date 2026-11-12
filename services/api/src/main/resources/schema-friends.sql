@@ -18,4 +18,3 @@ CREATE TABLE IF NOT EXISTS cm_friend_messages (
  UNIQUE(sender_id,request_id)
 );
 CREATE INDEX IF NOT EXISTS cm_friend_inbox_idx ON cm_friend_messages(recipient_id,created_at);
-

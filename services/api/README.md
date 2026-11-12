@@ -101,3 +101,8 @@ services/api에서 실행하면 application.properties가 루트 ../../.env와 �
 [Supabase Auth](https://supabase.com/docs/guides/auth/jwts) · [DB 연결](https://supabase.com/docs/guides/database/connecting-to-postgres) · [Storage 접근 제어](https://supabase.com/docs/guides/storage/security/access-control) · [Spring Boot](https://docs.spring.io/spring-boot/3.5/system-requirements.html)
 
 Friend-account MVP: [API contract and test command](../../docs/contracts/friend-messages-mvp.md).
+
+## 초기 독립 권한 검사
+
+[security/README.md](security/README.md)의 코드는 초기 v0.1 수신자 정책을 보존한 독립 검사다.
+현재 서버는 가족·차량·이동·친구 권한을 자체 검사하므로 이 단순 정책으로 교체하지 않는다.

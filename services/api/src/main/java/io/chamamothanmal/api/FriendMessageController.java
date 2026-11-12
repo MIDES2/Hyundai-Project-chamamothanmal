@@ -209,4 +209,3 @@ public class FriendMessageController {
             longValue(row,"completedAt"), longValue(row,"archiveUntil"), longValue(row,"deletedAt"));
     }
 }
-

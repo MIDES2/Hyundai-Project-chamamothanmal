@@ -131,3 +131,10 @@
 2026-11-11 추가: /api/v2/places 장소명·주소 검색과 메시지 address 선택 필드. 웹은 선택한 결과를 등록 API에 보내고, 차량 :app은 공통 클라이언트와 :vehicle-state를 사용하는 별도 서버 연결 화면을 제공합니다. 실제 카카오·SDK·스피커는 별도 검증합니다.
 
 Friend-account MVP: [API contract](friend-messages-mvp.md).
+
+## 초기 QA 코드 보존
+
+[수신자 권한 검사](../../services/api/security/README.md)와
+`tests/integration/voice-message-smoke.ps1`은 초기 v0.1 초안용이다.
+현재 가족·차량·세션 기반 v2와 친구 메시지 권한에 직접 적용하지 않는다.
+최신 API 검증은 서버의 `scripts/smoke-test.ps1`와 기존 API 테스트를 사용한다.
