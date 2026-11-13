@@ -1,3 +1,4 @@
+export { default } from "./ConnectedVehicleApp.jsx";
 import HomePage from "./pages/HomePage.jsx";
 import JourneyPage from "./pages/JourneyPage.jsx";
 import PlaybackPage from "./pages/PlaybackPage.jsx";
@@ -32,7 +33,7 @@ function destinationSign(path) {
     360;
   return { x: point.x, y: point.y, angle };
 }
-export default function VehicleApp() {
+export function DemoVehicleApp() {
   const [screen, setScreen] = useState("intro"),
     [accepted, setAccepted] = useState(false),
     [played, setPlayed] = useState(false),

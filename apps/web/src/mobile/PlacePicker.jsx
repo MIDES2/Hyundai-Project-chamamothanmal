@@ -28,6 +28,7 @@ export default function PlacePicker({ selected, label, onSelect, accountId }) {
       /* Keep the list in memory. */
     }
   }, [saved, storageKey]);
+  const [manualLatitude, setManualLatitude] = useState(""), [manualLongitude, setManualLongitude] = useState("");
   const [query, setQuery] = useState(""),
     [results, setResults] = useState([]),
     [maps, setMaps] = useState(null),
@@ -58,7 +59,10 @@ export default function PlacePicker({ selected, label, onSelect, accountId }) {
   }
   function addTypedPlace() {
     const name = query.trim();
-    if (name) choose({ id: "manual:" + name, name, source: "manual" });
+    const latitude=Number(manualLatitude), longitude=Number(manualLongitude);
+    if (!name || !manualLatitude.trim() || !manualLongitude.trim() || !Number.isFinite(latitude) || !Number.isFinite(longitude) || Math.abs(latitude)>90 || Math.abs(longitude)>180)
+      return setError("장소 이름과 올바른 위도·경도를 입력해주세요.");
+    choose({ id: "manual:" + name + ":" + latitude + ":" + longitude, name, latitude, longitude, source: "manual" });
   }
   useEffect(() => {
     chooseRef.current = choose;
@@ -198,6 +202,11 @@ export default function PlacePicker({ selected, label, onSelect, accountId }) {
           <Icon name="search" />
         </button>
       </div>
+      <details><summary>좌표로 장소 직접 추가</summary>
+        <p className="account-help">지도 키 없이 시험할 때도 좌표가 필요해요. 장소 이름은 위 검색칸에 입력해주세요.</p>
+        <input aria-label="직접 입력 위도" inputMode="decimal" value={manualLatitude} onChange={e=>setManualLatitude(e.target.value)} placeholder="위도 (-90~90)" />
+        <input aria-label="직접 입력 경도" inputMode="decimal" value={manualLongitude} onChange={e=>setManualLongitude(e.target.value)} placeholder="경도 (-180~180)" />
+      </details>
       {query.trim() && (
         <button
           type="button"

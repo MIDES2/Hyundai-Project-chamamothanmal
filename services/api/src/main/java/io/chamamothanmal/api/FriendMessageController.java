@@ -6,6 +6,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import java.time.Clock;
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -31,14 +33,15 @@ public class FriendMessageController {
         @NotNull @DecimalMin("-90") @DecimalMax("90") Double latitude,
         @NotNull @DecimalMin("-180") @DecimalMax("180") Double longitude,
         @NotNull ListeningMode listeningMode,
-        @Positive Long expiresAt
+        @Positive Long expiresAt, LocalDate scheduledDate
     ) { }
 
     public record MessageView(String id, String senderId, String recipientId, String placeName,
         String address, double latitude, double longitude, ListeningMode listeningMode,
         double audioSeconds, long createdAt, long expiresAt, Long completedAt,
-        Long archiveUntil, Long deletedAt) { }
+        Long archiveUntil, Long deletedAt, LocalDate scheduledDate, long availableAt, String reaction) { }
 
+    private final UiAccountService accounts;
     private final FamilyRepository db;
     private final FamilyService users;
     private final AudioStorage validator;
@@ -47,7 +50,8 @@ public class FriendMessageController {
     private final ObjectMapper json;
 
     public FriendMessageController(FamilyRepository db, FamilyService users,
-        AudioStorage validator, VoiceBlobStore blobs, Clock clock, ObjectMapper json) {
+        AudioStorage validator, VoiceBlobStore blobs, Clock clock, ObjectMapper json, UiAccountService accounts) {
+        this.accounts=accounts;
         this.db = db;
         this.users = users;
         this.validator = validator;
@@ -65,12 +69,8 @@ public class FriendMessageController {
     @PutMapping("/friends")
     Map<String, String> addFriend(HttpServletRequest request, @Valid @RequestBody FriendRequest form) {
         String owner = actor(request);
-        if (owner.equals(form.accountId())) throw ApiException.invalid("Choose another account.");
         db.one("SELECT id FROM cm_users WHERE id=? AND state='ACTIVE'", form.accountId());
-        if (db.list("SELECT friend_id FROM cm_friends WHERE owner_id=? AND friend_id=?",
-                owner, form.accountId()).isEmpty()) {
-            db.update("INSERT INTO cm_friends(owner_id,friend_id) VALUES(?,?)", owner, form.accountId());
-        }
+        accounts.connect(owner,form.accountId());
         return Map.of("accountId", form.accountId());
     }
 
@@ -103,11 +103,14 @@ public class FriendMessageController {
             WHERE f.owner_id=? AND f.friend_id=? AND u.state='ACTIVE'
             """, sender, form.recipientId());
         long now = clock.millis();
-        long expires = form.expiresAt() == null ? now + Duration.ofDays(1).toMillis() : form.expiresAt();
+        LocalDate today=LocalDate.now(clock.withZone(ZoneId.of("Asia/Seoul")));
+        if(form.scheduledDate()!=null && form.scheduledDate().isBefore(today)) throw ApiException.invalid("오늘 이후의 수신 시작일을 선택해주세요.");
+        long available=form.scheduledDate()==null?now:Math.max(now,form.scheduledDate().atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
+        long expires = form.expiresAt() == null ? available + Duration.ofDays(1).toMillis() : form.expiresAt();
         if (!Double.isFinite(form.latitude()) || !Double.isFinite(form.longitude())) {
             throw ApiException.invalid("Use finite coordinates.");
         }
-        if (expires <= now) throw ApiException.invalid("Choose a future expiry.");
+        if (expires <= available) throw ApiException.invalid("Choose a future expiry.");
         String id = UUID.randomUUID().toString();
         String blob = blobs.save(audio);
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -117,11 +120,11 @@ public class FriendMessageController {
         });
         db.update("""
             INSERT INTO cm_friend_messages(id,sender_id,recipient_id,request_id,request_hash,
-              place_name,address,latitude,longitude,listening_mode,audio_name,audio_seconds,created_at,expires_at)
-            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+              place_name,address,latitude,longitude,listening_mode,audio_name,audio_seconds,created_at,expires_at,scheduled_date,available_at)
+            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """, id, sender, form.recipientId(), key.toString(), hash, form.placeName(),
             form.address(), form.latitude(), form.longitude(), form.listeningMode().name(),
-            blob, audio.seconds(), now, expires);
+            blob, audio.seconds(), now, expires, form.scheduledDate(), available);
         return view(db.one("SELECT * FROM cm_friend_messages WHERE id=?", id));
     }
 
@@ -130,8 +133,8 @@ public class FriendMessageController {
         return db.list("""
             SELECT m.* FROM cm_friend_messages m JOIN cm_users u ON u.id=m.sender_id
             WHERE m.recipient_id=? AND m.deleted_at IS NULL AND m.completed_at IS NULL
-              AND m.expires_at>? AND u.state='ACTIVE' ORDER BY m.created_at DESC LIMIT 100
-            """, actor(request), clock.millis()).stream().map(this::view).toList();
+              AND m.available_at<=? AND m.expires_at>? AND u.state='ACTIVE' ORDER BY m.created_at DESC LIMIT 100
+            """, actor(request), clock.millis(), clock.millis()).stream().map(this::view).toList();
     }
 
     @GetMapping("/friend-messages/archive")
@@ -182,6 +185,17 @@ public class FriendMessageController {
         }
     }
 
+    public record Reaction(@NotBlank @Size(max=16) String emoji) { }
+    @PutMapping("/friend-messages/{id}/reaction")
+    MessageView reaction(HttpServletRequest request,@PathVariable UUID id,@Valid @RequestBody Reaction body) {
+        var row=received(actor(request),id);checkAudioAccess(row);
+        if(row.get("completedAt")==null) throw new ApiException(HttpStatus.CONFLICT,"NOT_COMPLETED","끝까지 재생한 후 답장할 수 있습니다.");
+        if(!java.util.Set.of("👍","🤣","🤔","🫠","🙂‍↕️","🥹","😭","♥️","😡","🥺").contains(body.emoji()))
+            throw ApiException.invalid("지원하는 이모지를 선택해주세요.");
+        db.update("UPDATE cm_friend_messages SET reaction=? WHERE id=?",body.emoji(),id.toString());
+        return view(received((String)row.get("recipientId"),id));
+    }
+
     private Map<String,Object> received(String user, UUID id) {
         return db.one("""
             SELECT m.* FROM cm_friend_messages m WHERE m.id=? AND m.recipient_id=?
@@ -192,7 +206,7 @@ public class FriendMessageController {
 
     private void checkAudioAccess(Map<String,Object> row) {
         Long until = longValue(row, row.get("completedAt") == null ? "expiresAt" : "archiveUntil");
-        if (Boolean.TRUE.equals(row.get("audioRemoved")) || until == null || until <= clock.millis()) {
+        if (((Number)row.get("availableAt")).longValue()>clock.millis() || Boolean.TRUE.equals(row.get("audioRemoved")) || until == null || until <= clock.millis()) {
             throw ApiException.notFound();
         }
     }
@@ -206,6 +220,7 @@ public class FriendMessageController {
             (String)row.get("placeName"), (String)row.get("address"), ((Number)row.get("latitude")).doubleValue(),
             ((Number)row.get("longitude")).doubleValue(), ListeningMode.valueOf((String)row.get("listeningMode")),
             ((Number)row.get("audioSeconds")).doubleValue(), longValue(row,"createdAt"), longValue(row,"expiresAt"),
-            longValue(row,"completedAt"), longValue(row,"archiveUntil"), longValue(row,"deletedAt"));
+            longValue(row,"completedAt"), longValue(row,"archiveUntil"), longValue(row,"deletedAt"),
+            row.get("scheduledDate")==null?null:LocalDate.parse(row.get("scheduledDate").toString()), ((Number)row.get("availableAt")).longValue(), (String)row.get("reaction"));
     }
 }

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Icon } from "../../shared/Icons.jsx";
 import MessageCard from "../components/MessageCard.jsx";
-export default function ArchivePage({ items, onDelete, onLogin }) {
+export default function ArchivePage({ items, onDelete, onLogin, onLoadAudio }) {
   const [editing, setEditing] = useState(false),
     [selected, setSelected] = useState([]);
   function toggle(id) {
@@ -13,9 +13,8 @@ export default function ArchivePage({ items, onDelete, onLogin }) {
     setEditing(false);
     setSelected([]);
   }
-  function remove() {
-    onDelete(selected);
-    finish();
+  async function remove() {
+    try { await onDelete(selected); finish(); } catch { /* Parent displays the error. */ }
   }
   return (
     <>
@@ -47,6 +46,7 @@ export default function ArchivePage({ items, onDelete, onLogin }) {
           key={message.id}
           message={message}
           onLogin={onLogin}
+          onLoadAudio={onLoadAudio}
           selecting={editing}
           selected={selected.includes(message.id)}
           onToggle={toggle}

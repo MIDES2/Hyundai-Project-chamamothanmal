@@ -11,6 +11,12 @@
 - 차량 앱에 별도 서버 연결 화면과 :vehicle-state 판정·실제 파일 다운로드/MediaPlayer·오디오/UX·재생 결과/답장 연결을 추가했습니다. [차량 앱 시험 안내](../../apps/vehicle/android/SERVER_INTEGRATION.md)
 - 서버 실행 중 `scripts/prepare-vehicle-demo.ps1`로 합성 소리와 차량 연결 코드를 준비합니다. 실제 사용자·SDK·스피커 시험을 대신하지 않습니다.
 
+## 2026-11-13 친구 UI 통합
+
+[친구 UI 계약](../../docs/contracts/friend-messages-mvp.md)에 로컬 가입·로그인·정확한 ID/전화번호 검색·양방향 친구 연결과 수신 시작일을 추가했습니다. 브라우저 PUT 요청을 허용하고 웹 녹음은 실제 PCM WAV로 변환합니다. Android와 차량 브라우저 UI가 같은 친구 메시지 API로 음성·완료·이모지 답장을 연결합니다. 기존 가족·차량·이동 API와는 메시지 저장 경로가 다릅니다.
+
+로컬 서버를 재시작하면 기존 데이터는 보존하면서 schema-ui.sql의 추가 테이블·컬럼을 초기화합니다. 새 웹 계정은 UI에서 가입합니다. 로그인 토큰은 8시간 메모리 세션이고 재시작 시 폐기됩니다. 개인 API 토큰을 웹 환경변수에 복사하지 않습니다. Supabase에는 `004_ui_integration.sql`을 명시적으로 적용해야 하며 로컬 가입/로그인은 Supabase 모드에서 비활성입니다. 원격 Supabase 인증 UI는 별도입니다.
+
 ## 바로 시작
 
 기존 서버가 실행 중이면 해당 터미널에서 Ctrl+C로 종료한 뒤 다시 켭니다. 기존 .env와 DB·음성 파일을 지우지 않습니다.

@@ -1,6 +1,6 @@
 import { Icon } from "../../shared/Icons.jsx";
 import MessageCard from "../components/MessageCard.jsx";
-export default function WaitingPage({ shownWaiting, edit, goLogin }) {
+export default function WaitingPage({ shownWaiting, goLogin }) {
   return (
     <>
       <h1 className="list-heading">
@@ -12,7 +12,7 @@ export default function WaitingPage({ shownWaiting, edit, goLogin }) {
           key={m.id}
           message={m}
           waiting
-          onEdit={edit}
+          onEdit={undefined}
           onLogin={goLogin}
         />
       ))}

@@ -6,6 +6,7 @@ export default function MessageCard({
   waiting,
   onEdit,
   onLogin,
+  onLoadAudio,
   selecting = false,
   selected = false,
   onToggle,
@@ -29,7 +30,7 @@ export default function MessageCard({
           <Icon name="car" />
         </button>
         <strong>{message.vehicle}</strong>
-        {waiting && <button onClick={() => onEdit(message)}>수정</button>}
+        {waiting && onEdit && <button onClick={() => onEdit(message)}>수정</button>}
       </div>
       <p>
         <Icon name="pin" />
@@ -42,6 +43,8 @@ export default function MessageCard({
       {message.recipientId && (
         <p className="message-recipient">전달 대상 · {message.recipient}</p>
       )}
+      {!message.url && onLoadAudio && <button type="button" onClick={() => onLoadAudio(message.id)}>음성 불러오기</button>}
+      {message.completedAt && <p>재생 완료{message.reaction ? ` · ${message.reaction}` : ""}</p>}
       <Player compact src={message.url} duration={message.duration} />
       {selecting && (
         <button
