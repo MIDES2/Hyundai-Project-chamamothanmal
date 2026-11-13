@@ -70,7 +70,12 @@ button:disabled {
   bottom: 15%;
   width: 58%;
   border-radius: 32px;
-  background: #303d61;
+  background: linear-gradient(180deg, #46567e 0%, #36466b 22%, #303d61 58%, #26324f 100%);
+  box-shadow:
+    inset 0 2px 5px #ffffff45,
+    inset 1px 0 3px #ffffff18,
+    inset -1px 0 3px #ffffff12,
+    inset 0 -4px 10px #10192e45;
   overflow: hidden;
   padding: 20px 24px;
 }
@@ -84,7 +89,15 @@ button:disabled {
   width: 57px;
 }
 .v-brand strong {
-  color: #111;
+  font-family: "HY헤드라인M", "HYHeadLine-Medium", "Hancom Gothic", "Malgun Gothic", sans-serif;
+  font-weight: 900;
+  background: linear-gradient(180deg, #73777c 0%, #555a60 40%, #42474d 72%, #34383e 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  filter: none;
   font-size: 12px;
   display: block;
   line-height: 1;
@@ -100,7 +113,8 @@ button:disabled {
 }
 .new-message {
   border-radius: 29px;
-  background: #45464d;
+  background: linear-gradient(180deg, #565860 0%, #484a52 42%, #3c3e46 100%);
+  box-shadow: inset 0 2px 3px #ffffff26, inset 0 -3px 6px #16192240, 0 4px 8px #15213a26;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -123,13 +137,18 @@ button:disabled {
   font-weight: 700;
 }
 .v-pill {
-  background: #5c6183;
+  background: linear-gradient(180deg, #777d9f 0%, #62688b 42%, #505677 100%);
+  box-shadow: inset 0 2px 2px #ffffff40, inset 0 -2px 3px #30365459, 0 3px 0 #29335066, 0 5px 8px #15213a26;
   border-radius: 30px;
   width: 100%;
   min-height: 59px;
   font-size: 23px;
   font-weight: 700;
   padding: 8px 13px;
+}
+.v-pill:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: inset 0 2px 4px #30365459, 0 1px 2px #15213a33;
 }
 .receive {
   display: flex;
@@ -149,7 +168,8 @@ button:disabled {
 }
 .no-message {
   border-radius: 30px;
-  background: #45464d;
+  background: linear-gradient(180deg, #565860 0%, #484a52 42%, #3c3e46 100%);
+  box-shadow: inset 0 2px 3px #ffffff26, inset 0 -3px 6px #16192240, 0 4px 8px #15213a26;
   min-height: 183px;
   display: flex;
   flex-direction: column;
@@ -533,7 +553,11 @@ button:disabled {
   border-radius: 9px;
 }
 .dock-app {
-  background: #303d61;
+  background: linear-gradient(180deg, #53648a 0%, #3b4b71 42%, #283553 100%);
+  box-shadow:
+    inset 0 2px 3px #ffffff80,
+    inset 0 -2px 4px #0003,
+    0 0 3px #ffffff30;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -932,7 +956,8 @@ button:disabled {
 .vehicle-dock > .dock-grey,
 .vehicle-dock > .dock-purple,
 .vehicle-dock > .dock-green,
-.vehicle-dock > .dock-blue {
+.vehicle-dock > .dock-blue,
+.vehicle-dock > .dock-app {
   display: flex;
   align-items: center;
   justify-content: center;

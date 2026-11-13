@@ -1,10 +1,10 @@
 import CarLogin from "../components/CarLogin.jsx";
 import depthCar from "../../shared/assets/car-white-depth.svg";
 import VoiceBubble from "../components/VoiceBubble.jsx";
-export default function SplashPage({ setPage, goLogin }) {
+export default function SplashPage({ onStart, goLogin, loggedIn, onLogout }) {
   const withCopy = document.documentElement.dataset.introCopy === "true" || new URLSearchParams(window.location.search).get("introCopy") === "on";
   return (
-    <main className={"splash" + (withCopy ? " splash-with-copy" : "")} onClick={() => setPage("welcome")}>
+    <main className={"splash" + (withCopy ? " splash-with-copy" : "")} onClick={onStart}>
       <svg width="0" height="0" className="splash-lighting" aria-hidden="true" focusable="false">
         <defs>
           <filter id="splash-car-depth" x="-20%" y="-25%" width="140%" height="160%" colorInterpolationFilters="sRGB">
@@ -26,11 +26,11 @@ export default function SplashPage({ setPage, goLogin }) {
         <CarLogin onClick={goLogin} artwork={depthCar} />
         <VoiceBubble />
       </div>
-      <button className="splash-start" type="button" onClick={() => setPage("welcome")}>
+      <button className="splash-start" type="button" onClick={onStart}>
         <span>시작하기</span>
         <span className="splash-start-arrow" aria-hidden="true">→</span>
       </button>
-      <button className="splash-login" type="button" onClick={(event) => { event.stopPropagation(); goLogin(); }}>로그인/회원가입</button>
+      <button className="splash-login" type="button" onClick={(event) => { event.stopPropagation(); if (loggedIn) onLogout(); else goLogin(); }}>{loggedIn ? "로그아웃" : "로그인/회원가입"}</button>
     </main>
   );
 }

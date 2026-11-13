@@ -1,5 +1,6 @@
-import whiteCar from "./assets/car-white.svg";
-import darkCar from "./assets/car-dark.svg";
+import whiteCar from "./assets/car-white-light-depth.svg";
+import darkCar from "./assets/car-dark-depth.svg";
+import blueWindowCar from "./assets/car-white-depth.svg";
 export function Icon({ name }) {
   const p = {
     home: (
@@ -80,11 +81,11 @@ export function Icon({ name }) {
     </svg>
   );
 }
-export function Car({ dark = false, angled = false, artwork }) {
+export function Car({ dark = false, angled = false, artwork, surface = "light" }) {
   return (
     <img
       className={"car-art" + (angled ? " angled" : "")}
-      src={artwork || (dark ? darkCar : whiteCar)}
+      src={artwork || (dark ? darkCar : surface === "dark" ? blueWindowCar : whiteCar)}
       alt="직접 그린 현대 H·기아 K 바퀴의 자동차"
     />
   );
