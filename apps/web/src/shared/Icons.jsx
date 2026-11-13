@@ -80,11 +80,11 @@ export function Icon({ name }) {
     </svg>
   );
 }
-export function Car({ dark = false, angled = false }) {
+export function Car({ dark = false, angled = false, artwork }) {
   return (
     <img
       className={"car-art" + (angled ? " angled" : "")}
-      src={dark ? darkCar : whiteCar}
+      src={artwork || (dark ? darkCar : whiteCar)}
       alt="직접 그린 현대 H·기아 K 바퀴의 자동차"
     />
   );

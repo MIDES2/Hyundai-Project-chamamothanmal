@@ -223,6 +223,7 @@ export default function HomePage({
             accountId={accountId}
             selected={draft.placeDetails}
             label={draft.place}
+            onClear={() => setDraft((d) => ({ ...d, place: "", placeDetails: null }))}
             onSelect={(place) =>
               setDraft((d) => ({
                 ...d,
