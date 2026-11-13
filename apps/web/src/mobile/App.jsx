@@ -1,5 +1,4 @@
 import SplashPage from "./pages/SplashPage.jsx";
-import WelcomePage from "./pages/WelcomePage.jsx";
 import LoadingPage from "./pages/LoadingPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import HomePage from "./pages/HomePage.jsx";
@@ -31,6 +30,13 @@ const initial = {
   recipient: "둘째",
   date: "2026-11-15",
 };
+const SESSION_KEY = "chama-ui-session-v1";
+function restoreAccount(profiles) {
+  try {
+    const id = localStorage.getItem(SESSION_KEY);
+    return profiles.some((profile) => profile.id === id) ? id : null;
+  } catch { return null; }
+}
 const sample = [
   {
     ...initial,
@@ -65,8 +71,14 @@ export default function App() {
     [password, setPassword] = useState(""),
     [visible, setVisible] = useState(false);
   const [profiles, setProfiles] = useState(readProfiles),
-    [accountId, setAccountId] = useState(null),
+    [accountId, setAccountId] = useState(() => restoreAccount(profiles)),
     [notice, setNotice] = useState("");
+  useEffect(() => {
+    try {
+      if (accountId) localStorage.setItem(SESSION_KEY, accountId);
+      else localStorage.removeItem(SESSION_KEY);
+    } catch { /* Session remains in memory if browser storage is unavailable. */ }
+  }, [accountId]);
   const [notifications, setNotifications] = useState(readNotifications);
   const accountNotifications = notifications.filter(
     (n) => n.ownerId === accountId,
@@ -165,9 +177,36 @@ export default function App() {
   }
   function goLogin() {
     setModal(null);
+    if (profile) setEmail(profile.handle);
+    setVisible(false);
     setPage("login");
   }
+  function startApp() {
+    setModal(null);
+    setTab("home");
+    setPage(profile ? "main" : "loading");
+  }
+  function logout() {
+    setAccountId(null);
+    setPassword("");
+    setEmail("");
+    setVisible(false);
+    setDraft({ ...initial, recipient: "", recipientId: "" });
+    setClip(null);
+    setEditing(null);
+    setModal(null);
+    setNotice("");
+    setTab("home");
+    setPage("splash");
+    try { localStorage.removeItem(SESSION_KEY); } catch { /* In-memory logout still applies. */ }
+  }
   function login() {
+    if (profile && !password && findProfile(profiles, email)?.id === profile.id) {
+      setNotice("");
+      setPage("main");
+      setTab("home");
+      return;
+    }
     if (!email.trim() || !password.trim()) return;
     let match = findProfile(profiles, email);
     if (!match) {
@@ -293,9 +332,7 @@ export default function App() {
   return (
     <div className="phone">
       {page === "splash" ? (
-        <SplashPage setPage={setPage} goLogin={goLogin} />
-      ) : page === "welcome" ? (
-        <WelcomePage setPage={setPage} goLogin={goLogin} />
+        <SplashPage onStart={startApp} goLogin={goLogin} loggedIn={Boolean(profile)} onLogout={logout} />
       ) : page === "loading" ? (
         <LoadingPage />
       ) : page === "signup" ? (
@@ -318,6 +355,7 @@ export default function App() {
           email={email}
           setEmail={setEmail}
           password={password}
+          sessionActive={Boolean(profile && findProfile(profiles, email)?.id === profile.id)}
           setPassword={setPassword}
           visible={visible}
           setVisible={setVisible}
@@ -446,7 +484,8 @@ export default function App() {
                 )}
               </p>
             )}
-            {modal === "비밀번호 변경" && (
+            {modal === "아이디 찾기" && <p className="account-help">아이디 찾기는 실제 인증 서버 연결 후 제공됩니다.</p>}
+            {(modal === "비밀번호 변경" || modal === "비밀번호 찾기/변경") && (
               <p className="account-help">
                 비밀번호 변경은 실제 인증 서버 연결 후 제공됩니다.
               </p>

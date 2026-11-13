@@ -15,7 +15,7 @@ export default function HomePage({
     <>
       <div className="v-header">
         <div className="v-brand">
-          <Car />
+          <Car surface="dark" />
           <strong>차마못한말</strong>
         </div>
         <div className="v-header-actions">

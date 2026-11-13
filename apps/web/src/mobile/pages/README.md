@@ -2,7 +2,7 @@
 
 이 폴더의 `.jsx` 파일이 휴대폰 앱 각 화면의 원본입니다.
 
-- 시작·선택·로딩: `SplashPage.jsx`, `WelcomePage.jsx`, `LoadingPage.jsx`
+- 시작·로딩: `SplashPage.jsx`, `LoadingPage.jsx` (중간 로그인 선택 화면 제거)
 - 로그인·회원가입·친구: `LoginPage.jsx`, `SignupPage.jsx`, `FriendsPage.jsx`
 - 홈·꽂아둔말·보관함·MY: `HomePage.jsx`, `WaitingPage.jsx`, `ArchivePage.jsx`, `MyPage.jsx`
 
