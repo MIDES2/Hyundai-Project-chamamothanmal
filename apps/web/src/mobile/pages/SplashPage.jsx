@@ -27,9 +27,10 @@ export default function SplashPage({ setPage, goLogin }) {
         <VoiceBubble />
       </div>
       <button className="splash-start" type="button" onClick={() => setPage("welcome")}>
-        <span>마음 전하러 가기</span>
+        <span>시작하기</span>
         <span className="splash-start-arrow" aria-hidden="true">→</span>
       </button>
+      <button className="splash-login" type="button" onClick={(event) => { event.stopPropagation(); goLogin(); }}>로그인/회원가입</button>
     </main>
   );
 }
