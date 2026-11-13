@@ -71,7 +71,7 @@ class SupabaseGatewayTests {
             e-> { assertThat(e.status().value()).isEqualTo(503);assertThat(e.getMessage()).doesNotContain("test-server-key"); });
     }
     @Test void cloudAuthRejectsLegacyApiAndAcceptsOnlyVerifiedUser() throws Exception {
-        var filter=new PrototypeAuth(null,new ObjectMapper(),settings,gateway);
+        var filter=new PrototypeAuth(null,new ObjectMapper(),settings,gateway,null);
         var request=new org.springframework.mock.web.MockHttpServletRequest("GET","/api/v2/me");
         request.addHeader("Authorization","Bearer valid-user-token");
         var response=new org.springframework.mock.web.MockHttpServletResponse();

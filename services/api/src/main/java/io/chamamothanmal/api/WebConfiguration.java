@@ -19,7 +19,7 @@ public class WebConfiguration {
     FilterRegistrationBean<CorsFilter> cors(ApiProperties settings) {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(settings.corsOrigins());
-        config.setAllowedMethods(java.util.List.of("GET", "POST", "PATCH", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(java.util.List.of("Authorization", "Content-Type", "Idempotency-Key", "X-Vehicle-Token"));
         config.setExposedHeaders(java.util.List.of("Location", "Idempotency-Replayed"));
         config.setAllowCredentials(false);

@@ -1,3 +1,4 @@
+import { toPcmWav } from "../audio/wav.js";
 import { useEffect, useRef, useState } from "react";
 import PlacePicker from "../PlacePicker.jsx";
 import RecipientPicker from "../RecipientPicker.jsx";
@@ -16,6 +17,7 @@ export default function HomePage({
   friends,
   onManageFriends,
   accountId,
+  busy,
 }) {
   const [places, setPlaces] = useState(true),
     [dates, setDates] = useState(false),
@@ -81,11 +83,16 @@ export default function HomePage({
       r.ondataavailable = (e) => {
         if (e.data.size) chunks.push(e.data);
       };
-      r.onstop = () => {
+      r.onstop = async () => {
         input.getTracks().forEach((t) => t.stop());
         if (mounted.current && !cancelled.current) {
-          const blob = new Blob(chunks, { type: r.mimeType });
-          setClip({ url: URL.createObjectURL(blob), duration: elapsed, blob });
+          pending.current = true;
+          try {
+            const converted = await toPcmWav(new Blob(chunks, { type: r.mimeType }), { recording: true });
+            if (mounted.current && !cancelled.current)
+              setClip({ ...converted, url: URL.createObjectURL(converted.blob) });
+          } catch (error) { if (mounted.current) setError(error.message); }
+          finally { pending.current = false; }
         }
       };
       r.start();
@@ -107,35 +114,17 @@ export default function HomePage({
       pending.current = false;
     }
   }
-  function attach(e) {
-    const f = e.target.files?.[0];
-    e.target.value = "";
-    if (!f) return;
-    setError("");
-    if (!f.type.startsWith("audio/")) {
-      setError("음성 파일을 선택해주세요.");
-      return;
-    }
-    const url = URL.createObjectURL(f),
-      check = new Audio(url);
-    check.onloadedmetadata = () => {
-      if (!mounted.current) {
-        URL.revokeObjectURL(url);
-        return;
-      }
-      if (!Number.isFinite(check.duration) || check.duration > 15.1) {
-        URL.revokeObjectURL(url);
-        setError("15초 이하의 음성을 선택해주세요.");
-        return;
-      }
-      setClip({ url, duration: check.duration, blob: f });
-    };
-    check.onerror = () => {
-      URL.revokeObjectURL(url);
-      setError("재생할 수 없는 음성 파일입니다.");
-    };
+  async function attach(e) {
+    const file = e.target.files?.[0]; e.target.value = "";
+    if (!file || pending.current) return;
+    setError(""); pending.current = true;
+    try {
+      const converted = await toPcmWav(file);
+      if (mounted.current) setClip({ ...converted, url: URL.createObjectURL(converted.blob) });
+    } catch (error) { if (mounted.current) setError(error.message); }
+    finally { pending.current = false; }
   }
-  function send(e) {
+  async function send(e) {
     e.preventDefault();
     if (!clip) {
       setError("마음을 녹음하거나 음성 파일을 첨부해주세요.");
@@ -150,7 +139,8 @@ export default function HomePage({
       setError("장소·날짜·전달 대상을 선택해주세요.");
       return;
     }
-    onSubmit();
+    if (pending.current) return setError("음성을 준비 중입니다. 잠시 기다려주세요.");
+    try { await onSubmit(); } catch (error) { setError(error.message); }
   }
   const update = (key, value) => setDraft((d) => ({ ...d, [key]: value }));
   return (
@@ -195,7 +185,7 @@ export default function HomePage({
             checked={(draft.audience || "shared") === "shared"}
             onChange={() => update("audience", "shared")}
           />
-          <span>함께 들어도 되는 메시지</span>
+          <span>자동 재생 · 함께 들어도 되는 메시지</span>
         </label>
         <label>
           <input
@@ -205,7 +195,7 @@ export default function HomePage({
             checked={draft.audience === "private"}
             onChange={() => update("audience", "private")}
           />
-          <span>혼자 들어야 하는 메시지</span>
+          <span>재생 전 확인 · 혼자 듣고 싶은 메시지</span>
         </label>
       </fieldset>
       <section className="place-section">
@@ -242,7 +232,7 @@ export default function HomePage({
             aria-expanded={dates}
             onClick={() => setDates(!dates)}
           >
-            날짜 선택 {dates ? "⌃" : "⌄"}
+            수신 시작일 {dates ? "⌃" : "⌄"}
           </button>
           {dates && (
             <Calendar date={draft.date} onChange={(v) => update("date", v)} />
@@ -281,7 +271,8 @@ export default function HomePage({
           {error}
         </p>
       )}
-      <Primary disabled={recording}>등록하기</Primary>
+      <p className="account-help">선택한 날부터 수신 가능하며, 수신 가능 시점부터 24시간 뒤 만료돼요. 차량 스피커의 소리는 동승자에게도 들릴 수 있어요.</p>
+      <Primary disabled={recording || busy}>{busy ? "전송 중…" : "등록하기"}</Primary>
       {(clip || recording || isEditing) && (
         <button type="button" className="cancel" onClick={cancel}>
           취소

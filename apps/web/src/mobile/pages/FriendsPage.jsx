@@ -1,29 +1,30 @@
 import { useState } from "react";
 import AccountHeader from "../components/AccountHeader.jsx";
 import { Icon } from "../../shared/Icons.jsx";
-import { findProfile, roleName } from "../accounts.js";
+import { roleName } from "../accounts.js";
 export default function FriendsPage({
   profile,
   profiles,
   onBack,
   onLogin,
   onConnect,
+  onSearch,
   onSelect,
   initialQuery = "",
 }) {
   const [query, setQuery] = useState(initialQuery),
-    [result, setResult] = useState(() => findProfile(profiles, initialQuery)),
-    [searched, setSearched] = useState(Boolean(initialQuery)),
+    [result, setResult] = useState(null),
+    [searched, setSearched] = useState(false),
     [message, setMessage] = useState("");
   const friends = profiles.filter((p) => profile.friendIds.includes(p.id));
-  function search(e) {
+  async function search(e) {
     e.preventDefault();
     setMessage("");
-    setResult(findProfile(profiles, query));
+    try { setResult(await onSearch(query)); } catch (error) { setResult(null); setMessage(error.message); }
     setSearched(true);
   }
-  function connect() {
-    const error = onConnect(result.id);
+  async function connect() {
+    const error = await onConnect(result.id);
     if (error) setMessage(error);
     else {
       setResult(null);
@@ -79,8 +80,7 @@ export default function FriendsPage({
             </div>
           ) : (
             <p className="account-help" role="status">
-              계정을 찾지 못했어요. 먼저 이 브라우저에서 상대 계정으로
-              회원가입해주세요.
+              계정을 찾지 못했어요. 상대가 가입한 정확한 아이디나 전화번호를 입력해주세요.
             </p>
           ))}
         {message && (
@@ -114,9 +114,9 @@ export default function FriendsPage({
           </p>
         )}
         <p className="account-help">
-          친구 연결은 이 브라우저의 가입 계정끼리 적용됩니다.
+          친구 연결은 서버에 저장되어 다른 기기에서도 확인할 수 있어요.
           <br />
-          다른 기기와의 연결·메시지 전송은 서버 연동 후 제공됩니다.
+          운전자와 녹음자 계정을 서로 연결해주세요.
         </p>
       </main>
     </>

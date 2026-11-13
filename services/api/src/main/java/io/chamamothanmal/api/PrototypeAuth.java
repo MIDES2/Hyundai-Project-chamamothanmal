@@ -23,10 +23,12 @@ public class PrototypeAuth extends OncePerRequestFilter {
     private record Credential(byte[] token, Actor actor) { }
     private final List<Credential> credentials;
     private final ObjectMapper json;
+    private final UiAccountService uiAccounts;
     private final CloudSettings cloudSettings;
     private final SupabaseGateway cloud;
 
-    public PrototypeAuth(ApiProperties settings, ObjectMapper json, CloudSettings cloudSettings, SupabaseGateway cloud) {
+    public PrototypeAuth(ApiProperties settings, ObjectMapper json, CloudSettings cloudSettings, SupabaseGateway cloud, UiAccountService uiAccounts) {
+        this.uiAccounts=uiAccounts;
         this.cloudSettings = cloudSettings; this.cloud = cloud; this.json = json;
         if (cloudSettings.authMode.equals("supabase")) { credentials = List.of(); return; }
         if (!"development".equals(settings.environment())) {
@@ -47,7 +49,8 @@ public class PrototypeAuth extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI().substring(request.getContextPath().length());
-        return !path.startsWith("/api/") || request.getMethod().equals("OPTIONS");
+        return !path.startsWith("/api/") || request.getMethod().equals("OPTIONS") ||
+            (request.getMethod().equals("POST") && (path.equals("/api/v2/auth/login") || path.equals("/api/v2/auth/register")));
     }
 
     @Override
@@ -76,6 +79,12 @@ public class PrototypeAuth extends OncePerRequestFilter {
                     chain.doFilter(request, response);
                     return;
                 }
+            }
+        }
+        if (header != null && header.startsWith("Bearer ") && header.substring(7).matches("[A-Za-z0-9_-]{43}")) {
+            String user=uiAccounts.authenticate(header.substring(7));
+            if(user!=null) {
+                request.setAttribute(ACTOR,new Actor(user,"MEMBER"));chain.doFilter(request,response);return;
             }
         }
         response.setStatus(401);

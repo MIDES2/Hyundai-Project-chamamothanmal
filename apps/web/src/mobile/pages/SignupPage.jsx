@@ -15,7 +15,7 @@ export default function SignupPage({ onBack, onLogin, onRegister }) {
     setForm((f) => ({ ...f, [key]: value }));
     setError("");
   };
-  function submit(e) {
+  async function submit(e) {
     e.preventDefault();
     if (!form.name.trim()) return setError("이름을 입력해주세요.");
     if (!form.handle.trim() && !form.phone.trim())
@@ -24,11 +24,11 @@ export default function SignupPage({ onBack, onLogin, onRegister }) {
       return setError("이메일/아이디에 공백을 넣을 수 없습니다.");
     if (form.phone && !/^\d{10,11}$/.test(digits(form.phone)))
       return setError("전화번호를 10~11자리로 입력해주세요.");
-    if (form.password.trim().length < 4)
-      return setError("비밀번호를 4자 이상 입력해주세요.");
+    if (form.password.length < 8)
+      return setError("비밀번호를 8자 이상 입력해주세요.");
     if (form.password !== form.confirm)
       return setError("비밀번호가 일치하지 않습니다.");
-    const result = onRegister(form);
+    const result = await onRegister(form);
     if (result) setError(result);
   }
   return (
@@ -109,9 +109,9 @@ export default function SignupPage({ onBack, onLogin, onRegister }) {
           )}
           <button className="primary account-submit">회원가입</button>
           <p className="account-help">
-            이 브라우저에서 확인하는 회원가입 UI입니다.
+            로컬 통합 서버에 계정을 등록합니다.
             <br />
-            실제 계정 인증과 전화번호 인증은 연결 전입니다.
+            전화번호 소유 인증과 Pleos 계정 인증은 제공하지 않습니다.
           </p>
         </form>
       </main>

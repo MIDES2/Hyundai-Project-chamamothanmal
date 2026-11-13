@@ -14,9 +14,10 @@
     android:supportsRtl="true"
     android:theme="@style/Theme.chamamothanmal">
     <uses-library android:name="android.car" android:required="false" />
+    <activity android:name=".MainActivity" android:exported="false" />
     <activity android:name=".integration.ServerIntegrationActivity" android:exported="false" />
     <activity
-      android:name=".MainActivity"
+      android:name=".integration.FriendInboxActivity"
       android:exported="true"
       android:windowSoftInputMode="adjustResize">
       <intent-filter>

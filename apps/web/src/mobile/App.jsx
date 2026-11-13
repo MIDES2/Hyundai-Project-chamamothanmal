@@ -5,330 +5,136 @@ import HomePage from "./pages/HomePage.jsx";
 import WaitingPage from "./pages/WaitingPage.jsx";
 import ArchivePage from "./pages/ArchivePage.jsx";
 import MyPage from "./pages/MyPage.jsx";
-import NotificationList, {
-  NOTIFICATION_KEY,
-  readNotifications,
-} from "./Notifications.jsx";
+import NotificationList from "./Notifications.jsx";
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "../shared/Icons.jsx";
 import CarLogin from "./components/CarLogin.jsx";
 import SignupPage from "./pages/SignupPage.jsx";
 import FriendsPage from "./pages/FriendsPage.jsx";
-import { roleName } from "./accounts.js";
-import {
-  PROFILE_KEY,
-  digits,
-  readProfiles,
-  findProfile,
-  connectProfiles,
-} from "./accounts.js";
+import { roleName, digits } from "./accounts.js";
+import { request, setAccessToken, toCard } from "../shared/api.js";
 
-const initial = {
-  audience: "shared",
-  vehicle: "들어줄레이",
-  place: "한신대학교 정문",
-  recipient: "둘째",
-  date: "2026-11-15",
-};
-const SESSION_KEY = "chama-ui-session-v1";
-function restoreAccount(profiles) {
-  try {
-    const id = localStorage.getItem(SESSION_KEY);
-    return profiles.some((profile) => profile.id === id) ? id : null;
-  } catch { return null; }
-}
-const sample = [
-  {
-    ...initial,
-    id: "one",
-    date: "2026-11-14",
-    place: "수원역 ak플라자",
-    duration: 12,
-  },
-  {
-    ...initial,
-    id: "two",
-    date: "2026-11-10",
-    place: "병점역 후문",
-    duration: 15,
-  },
-];
+const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+const initial = () => ({ audience: "shared", vehicle: "들어줄레이", place: "", recipient: "", recipientId: "", date: today() });
 export default function App() {
-  const [page, setPage] = useState("splash"),
-    [tab, setTab] = useState("home"),
-    [draft, setDraft] = useState({
-      ...initial,
-      recipient: "",
-      recipientId: "",
-    }),
-    [clip, setClip] = useState(null),
-    [waiting, setWaiting] = useState([
-      { ...initial, id: "waiting-sample", duration: 12 },
-    ]),
-    [editing, setEditing] = useState(null),
-    [modal, setModal] = useState(null),
-    [email, setEmail] = useState(""),
-    [password, setPassword] = useState(""),
-    [visible, setVisible] = useState(false);
-  const [profiles, setProfiles] = useState(readProfiles),
-    [accountId, setAccountId] = useState(() => restoreAccount(profiles)),
-    [notice, setNotice] = useState("");
+  const [page, setPage] = useState("splash"), [tab, setTab] = useState("home");
+  const [draft, setDraft] = useState(initial), [clip, setClip] = useState(null);
+  const [waiting, setWaiting] = useState([]), [archived, setArchived] = useState([]);
+  const [modal, setModal] = useState(null), [email, setEmail] = useState(""), [password, setPassword] = useState("");
+  const [visible, setVisible] = useState(false), [notice, setNotice] = useState("");
+  const [profile, setProfile] = useState(null), [friends, setFriends] = useState([]), [friendQuery, setFriendQuery] = useState("");
+  const [busy, setBusy] = useState(false), [screenError, setScreenError] = useState("");
+  const accountId = profile?.id;
+  const profiles = profile ? [profile, ...friends] : [];
+  const editing = null;
+  const audioUrls = useRef(new Map()), generation = useRef(0), upload = useRef(null);
+  const notifications = waiting.filter(m => m.completedAt).map(m => ({ id: m.id, ownerId: accountId, title: "마음이 재생됐어요", body: m.place, createdAt: m.completedAt, read: true }));
+  const accountNotifications = notifications, hasUnread = false;
+  function clearAudio() { for (const url of audioUrls.current.values()) URL.revokeObjectURL(url); audioUrls.current.clear(); }
+  useEffect(() => () => clearAudio(), []);
   useEffect(() => {
-    try {
-      if (accountId) localStorage.setItem(SESSION_KEY, accountId);
-      else localStorage.removeItem(SESSION_KEY);
-    } catch { /* Session remains in memory if browser storage is unavailable. */ }
-  }, [accountId]);
-  const [notifications, setNotifications] = useState(readNotifications);
-  const accountNotifications = notifications.filter(
-    (n) => n.ownerId === accountId,
-  );
-  const hasUnread = accountNotifications.some((n) => !n.read);
-  const [friendQuery, setFriendQuery] = useState("");
-  const [deletedArchive, setDeletedArchive] = useState(() => {
-    try {
-      const value = JSON.parse(
-        localStorage.getItem("chama-ui-deleted-archive-v1") || "{}",
-      );
-      return value && typeof value === "object" && !Array.isArray(value)
-        ? Object.fromEntries(
-            Object.entries(value)
-              .filter(([, ids]) => Array.isArray(ids))
-              .map(([id, ids]) => [
-                id,
-                ids.filter((v) => typeof v === "string"),
-              ]),
-          )
-        : {};
-    } catch {
-      return {};
-    }
-  });
-  useEffect(() => {
-    try {
-      localStorage.setItem(
-        "chama-ui-deleted-archive-v1",
-        JSON.stringify(deletedArchive),
-      );
-    } catch {
-      /* In-memory deletion still works. */
-    }
-  }, [deletedArchive]);
-  const archived = sample.filter(
-    (item) => !(deletedArchive[accountId] || []).includes(item.id),
-  );
-  function deleteArchive(ids) {
-    setDeletedArchive((current) => ({
-      ...current,
-      [accountId]: [...new Set([...(current[accountId] || []), ...ids])],
-    }));
-  }
-  const profile = profiles.find((p) => p.id === accountId);
-  const friends = profile
-    ? profiles.filter((p) => profile.friendIds.includes(p.id))
-    : [];
-  const ownedUrls = useRef(new Set());
-  useEffect(() => {
-    if (clip?.url) ownedUrls.current.add(clip.url);
-  }, [clip]);
-  useEffect(() => {
-    const urls = ownedUrls.current;
-    return () => urls.forEach((url) => URL.revokeObjectURL(url));
-  }, []);
-  useEffect(() => {
-    try {
-      localStorage.setItem(PROFILE_KEY, JSON.stringify(profiles));
-    } catch {
-      /* UI still works in memory when storage is unavailable. */
-    }
-  }, [profiles]);
+    const url=clip?.url;
+    return () => { if(url && ![...audioUrls.current.values()].includes(url)) URL.revokeObjectURL(url); };
+  }, [clip?.url]);
   useEffect(() => {
     if (page !== "loading") return;
-    const timeout = setTimeout(() => setPage("login"), 850);
-    return () => clearTimeout(timeout);
+    const timer = setTimeout(() => setPage("login"), 850); return () => clearTimeout(timer);
   }, [page]);
+  async function refresh(expected = generation.current) {
+    const [self, linked, sent, archive] = await Promise.all([request("/profile"), request("/friends/profiles"), request("/friend-messages/sent"), request("/friend-messages/archive")]);
+    if (expected !== generation.current) return;
+    setProfile(self); setFriends(linked); setWaiting(sent.map(m => ({ ...toCard(m, linked), url: audioUrls.current.get(m.id) })));
+    setArchived(archive.map(m => ({ ...toCard(m, linked), url: audioUrls.current.get(m.id) })));
+  }
   useEffect(() => {
-    try {
-      localStorage.setItem(NOTIFICATION_KEY, JSON.stringify(notifications));
-    } catch {
-      /* Keep notifications in memory when storage is unavailable. */
-    }
-  }, [notifications]);
-  function notify(ownerId, title, body) {
-    const item = {
-      id:
-        "notification-" +
-        Date.now() +
-        "-" +
-        Math.random().toString(36).slice(2),
-      ownerId,
-      title,
-      body,
-      createdAt: Date.now(),
-      read: modal === "알림" && ownerId === accountId,
-    };
-    setNotifications((items) => [item, ...items].slice(0, 500));
-  }
-  function openNotifications() {
-    setNotifications((items) =>
-      items.map((n) => (n.ownerId === accountId ? { ...n, read: true } : n)),
-    );
-    setModal("알림");
-  }
+    if (page !== "main" || !profile) return;
+    const current = generation.current;
+    refresh(current).catch(error => { if (current === generation.current) setScreenError(error.message); });
+  }, [tab, page]);
   function goLogin() {
-    setModal(null);
+    setModal(null); setVisible(false); setNotice("");
     if (profile) setEmail(profile.handle);
-    setVisible(false);
-    setPage("login");
+    setPassword(""); setPage("login");
   }
-  function startApp() {
-    setModal(null);
-    setTab("home");
-    setPage(profile ? "main" : "loading");
+  async function startApp() {
+    setModal(null); setTab("home");
+    if (!profile) { setPage("loading"); return; }
+    try { await refresh(); setPage("main"); }
+    catch { logout(); setNotice("로그인이 만료됐어요. 다시 로그인해주세요."); setPage("login"); }
   }
   function logout() {
-    setAccountId(null);
-    setPassword("");
-    setEmail("");
-    setVisible(false);
-    setDraft({ ...initial, recipient: "", recipientId: "" });
-    setClip(null);
-    setEditing(null);
-    setModal(null);
-    setNotice("");
-    setTab("home");
-    setPage("splash");
-    try { localStorage.removeItem(SESSION_KEY); } catch { /* In-memory logout still applies. */ }
+    if (profile) request("/auth/logout", { method: "POST" }).catch(() => {});
+    generation.current++; setAccessToken(null); setProfile(null); setFriends([]); setWaiting([]); setArchived([]);
+    clearAudio(); setClip(null); setDraft(initial()); setPassword(""); setEmail(""); setVisible(false);
+    setModal(null); setPage("splash"); setTab("home"); setNotice(""); setScreenError(""); upload.current = null;
   }
-  function login() {
-    if (profile && !password && findProfile(profiles, email)?.id === profile.id) {
-      setNotice("");
-      setPage("main");
-      setTab("home");
-      return;
-    }
-    if (!email.trim() || !password.trim()) return;
-    let match = findProfile(profiles, email);
-    if (!match) {
-      match = {
-        id: "demo-" + Date.now() + "-" + Math.random().toString(36).slice(2),
-        name: email.trim(),
-        handle: email.trim(),
-        phone: "",
-        role: "recorder",
-        friendIds: [],
-      };
-      setProfiles((p) => [...p, match]);
-    }
-    if (match.id !== accountId) {
-      setDraft({ ...initial, recipient: "", recipientId: "" });
-      setClip(null);
-      setEditing(null);
-    }
-    setAccountId(match.id);
-    setNotice("");
-    setPage("main");
-    setTab("home");
+  async function login() {
+    if (busy) return;
+    setBusy(true); setNotice(""); const current = ++generation.current;
+    try {
+      if (!password && profile && [profile.handle, profile.phone].some(value => value && value.toLowerCase() === email.trim().toLowerCase())) {
+        await refresh(current);
+        if (current === generation.current) { setPage("main"); setTab("home"); }
+        return;
+      }
+      const result = await request("/auth/login", { method: "POST", body: { login: email.trim(), password } });
+      if (current !== generation.current) return;
+      setAccessToken(result.accessToken); setPassword(""); await refresh(current);
+      if (current === generation.current) { setPage("main"); setTab("home"); setScreenError(""); }
+    } catch (error) { if (current === generation.current) { setAccessToken(null); setNotice(error.message); } }
+    finally { setBusy(false); }
   }
-  function register(form) {
-    if (
-      (form.handle.trim() && findProfile(profiles, form.handle)) ||
-      (form.phone && findProfile(profiles, form.phone))
-    )
-      return "이미 가입된 이메일/아이디 또는 전화번호입니다.";
-    const phone = digits(form.phone);
-    const account = {
-      id: "account-" + Date.now() + "-" + Math.random().toString(36).slice(2),
-      name: form.name.trim(),
-      handle: form.handle.trim() || phone,
-      phone,
-      role: form.role,
-      friendIds: [],
-    };
-    setProfiles((p) => [...p, account]);
-    notify(
-      account.id,
-      "회원가입이 완료됐어요",
-      roleName(account.role) + " 계정으로 마음을 나눌 준비가 됐어요.",
-    );
-    setEmail(account.handle);
-    setPassword(form.password);
-    setNotice("회원가입이 완료되었습니다. 로그인해주세요.");
-    setPage("login");
-    return null;
+  async function register(form) {
+    try {
+      await request("/auth/register", { method: "POST", body: form });
+      setEmail(form.handle.trim() || digits(form.phone)); setPassword(""); setNotice("회원가입이 완료됐어요. 로그인해주세요."); setPage("login"); return null;
+    } catch (error) { return error.message; }
   }
-  function connect(otherId) {
-    const result = connectProfiles(profiles, accountId, otherId);
-    if (result.error) return result.error;
-    setProfiles(result.profiles);
-    const other = profiles.find((p) => p.id === otherId);
-    notify(
-      accountId,
-      "친구가 연결됐어요",
-      other.name + "님을 전달 대상으로 선택할 수 있어요.",
-    );
-    notify(
-      otherId,
-      "친구가 연결됐어요",
-      profile.name + "님과 친구로 연결됐어요.",
-    );
-    return null;
+  async function searchFriend(query) { return (await request(`/accounts/search?query=${encodeURIComponent(query.trim())}`))[0]; }
+  async function connect(otherId) {
+    try { await request("/friends", { method: "PUT", body: { accountId: otherId } }); await refresh(); return null; }
+    catch (error) { return error.message; }
   }
-  function selectFriend(friend) {
-    setDraft((d) => ({ ...d, recipient: friend.name, recipientId: friend.id }));
-    setPage("main");
-    setTab("home");
+  function selectFriend(friend) { setDraft(d => ({ ...d, recipient: friend.name, recipientId: friend.id })); setPage("main"); setTab("home"); }
+  async function submit() {
+    if (busy) return;
+    const point = draft.placeDetails;
+    if (!Number.isFinite(point?.latitude) || !Number.isFinite(point?.longitude)) throw new Error("검색 결과나 좌표가 있는 장소를 선택해주세요.");
+    if (!clip?.blob || clip.blob.type !== "audio/wav") throw new Error("WAV 음성을 준비해주세요.");
+    if (draft.date < today()) throw new Error("오늘 이후의 수신 시작일을 선택해주세요.");
+    const metadata = { recipientId: draft.recipientId, placeName: draft.place, address: point.roadAddress || point.address || "",
+      latitude: point.latitude, longitude: point.longitude, listeningMode: draft.audience === "private" ? "PRIVATE" : "TOGETHER", scheduledDate: draft.date };
+    const fingerprint = JSON.stringify(metadata);
+    if (!upload.current || upload.current.fingerprint !== fingerprint || upload.current.blob !== clip.blob)
+      upload.current = { key: crypto.randomUUID(), fingerprint, blob: clip.blob };
+    const form = new FormData(); form.append("message", new Blob([fingerprint], { type: "application/json" })); form.append("audio", clip.blob, "voice.wav");
+    const current = generation.current; setBusy(true);
+    try {
+      const result = await request("/friend-messages", { method: "POST", body: form, key: upload.current.key });
+      if (current !== generation.current) return;
+      audioUrls.current.set(result.id, clip.url); upload.current = null; setClip(null); setDraft(initial());
+      await refresh(current); if (current === generation.current) setTab("waiting");
+    } finally { setBusy(false); }
   }
-  function submit() {
-    const item = {
-      ...draft,
-      ...clip,
-      id: editing || String(Date.now()),
-      senderId: accountId,
-    };
-    setWaiting((items) =>
-      editing
-        ? items.map((m) => (m.id === editing ? item : m))
-        : [...items, item],
-    );
-    notify(
-      accountId,
-      editing ? "마음이 수정됐어요" : "마음이 잘 등록됐어요",
-      draft.recipient +
-        "님에게 전할 마음을 " +
-        draft.place +
-        "에 꽂아두었어요.",
-    );
-    setClip(null);
-    setEditing(null);
-    setTab("waiting");
+  async function deleteArchive(ids) {
+    try { await Promise.all(ids.map(id => request(`/friend-messages/${id}`, { method: "DELETE" }))); await refresh(); }
+    catch (error) { setScreenError(error.message); throw error; }
   }
-  function edit(message) {
-    setDraft({
-      audience: message.audience || "shared",
-      vehicle: message.vehicle,
-      place: message.place,
-      placeDetails: message.placeDetails || null,
-      date: message.date,
-      recipient: message.recipient,
-      recipientId: message.recipientId || "",
-    });
-    setClip(
-      message.url
-        ? { url: message.url, duration: message.duration, blob: message.blob }
-        : null,
-    );
-    setEditing(message.id);
-    setTab("home");
+  async function loadArchiveAudio(id) {
+    const current = generation.current;
+    const blob = await request(`/friend-messages/${id}/audio`, { binary: true });
+    if (current !== generation.current) return;
+    const url = URL.createObjectURL(blob); if (audioUrls.current.has(id)) URL.revokeObjectURL(audioUrls.current.get(id));
+    audioUrls.current.set(id, url); setArchived(items => items.map(m => m.id === id ? { ...m, url } : m));
   }
+  function openNotifications() { setModal("알림"); }
+  function edit() { setScreenError("전송된 메시지 수정은 지원하지 않습니다."); }
   const tabs = [
     ["waiting", "sign", "꽂아둔말"],
     ["home", "home", "홈"],
     ["archive", "basket", "보관함"],
   ];
-  const shownWaiting = waiting.filter(
-    (m) => !m.senderId || m.senderId === accountId,
-  );
+  const shownWaiting = waiting;
   return (
     <div className="phone">
       {page === "splash" ? (
@@ -344,6 +150,7 @@ export default function App() {
           profiles={profiles}
           onBack={() => setPage("main")}
           onLogin={goLogin}
+          onSearch={searchFriend}
           onConnect={connect}
           onSelect={selectFriend}
         />
@@ -352,10 +159,11 @@ export default function App() {
           setPage={setPage}
           goLogin={goLogin}
           login={login}
+          busy={busy}
           email={email}
           setEmail={setEmail}
           password={password}
-          sessionActive={Boolean(profile && findProfile(profiles, email)?.id === profile.id)}
+          sessionActive={Boolean(profile && [profile.handle, profile.phone].some(value => value && value.toLowerCase() === email.trim().toLowerCase()))}
           setPassword={setPassword}
           visible={visible}
           setVisible={setVisible}
@@ -396,8 +204,12 @@ export default function App() {
             </div>
           </header>
           <main className="main-content">
+            {screenError && <p role="alert" className="error">{screenError}</p>}
+            <button type="button" onClick={() => refresh().catch(e => setScreenError(e.message))}>새로고침</button>
+            <button type="button" onClick={logout}>로그아웃</button>
             {tab === "home" ? (
               <HomePage
+                busy={busy}
                 accountId={accountId}
                 draft={draft}
                 setDraft={setDraft}
@@ -411,8 +223,7 @@ export default function App() {
                 }}
                 isEditing={Boolean(editing)}
                 onCancel={() => {
-                  setEditing(null);
-                  setDraft({ ...initial, recipient: "", recipientId: "" });
+                  setDraft(initial());
                 }}
               />
             ) : tab === "waiting" ? (
@@ -425,6 +236,7 @@ export default function App() {
               <ArchivePage
                 items={archived}
                 onDelete={deleteArchive}
+                onLoadAudio={loadArchiveAudio}
                 onLogin={goLogin}
               />
             ) : (
@@ -487,7 +299,7 @@ export default function App() {
             {modal === "아이디 찾기" && <p className="account-help">아이디 찾기는 실제 인증 서버 연결 후 제공됩니다.</p>}
             {(modal === "비밀번호 변경" || modal === "비밀번호 찾기/변경") && (
               <p className="account-help">
-                비밀번호 변경은 실제 인증 서버 연결 후 제공됩니다.
+                아이디 찾기·비밀번호 재설정은 아직 제공하지 않습니다. 가입한 계정 정보를 사용해주세요.
               </p>
             )}
             <button className="modal-confirm" onClick={() => setModal(null)}>

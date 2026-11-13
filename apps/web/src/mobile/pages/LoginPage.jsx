@@ -5,6 +5,7 @@ export default function LoginPage({
   setPage,
   goLogin,
   login,
+  busy,
   email,
   setEmail,
   password,
@@ -85,17 +86,15 @@ export default function LoginPage({
               {notice}
             </p>
           )}
-          <Primary disabled={!email.trim() || (!password.trim() && !sessionActive)}>로그인</Primary>
+          <Primary disabled={busy || !email.trim() || (!password.trim() && !sessionActive)}>로그인</Primary>
         </form>
         <div className="login-divider" />
         <button
           type="button"
           className="pleos-login"
           onClick={() => {
-            if (email.trim() && (password.trim() || sessionActive)) login();
-            else
-              setNotice(
-                "이메일/아이디와 비밀번호를 입력해주세요. 실제 Pleos 인증은 연결 전입니다.",
+            setNotice(
+                "Pleos 계정 인증은 아직 연결되지 않았어요. 위의 일반 로그인을 사용해주세요.",
               );
           }}
         >
@@ -110,7 +109,7 @@ export default function LoginPage({
           <button onClick={() => setPage("signup")}>회원가입&gt;</button>
         </p>
         <p className="account-help login-help">
-          실제 인증 없이 동작하는 UI 시연입니다.
+          로컬 통합 계정으로 로그인합니다. 새로고침하면 다시 로그인해주세요.
         </p>
       </main>
     </>
