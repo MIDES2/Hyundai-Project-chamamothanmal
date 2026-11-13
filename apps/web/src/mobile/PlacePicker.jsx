@@ -7,12 +7,12 @@ const defaultPlace = {
   name: "한신대학교 정문",
   source: "preset",
 };
-export default function PlacePicker({ selected, label, onSelect, accountId }) {
+export default function PlacePicker({ selected, label, onSelect, onClear, accountId }) {
   const storageKey = "chama-ui-places-v1:" + accountId;
   const [saved, setSaved] = useState(() => {
     try {
       const value = JSON.parse(localStorage.getItem(storageKey) || "null");
-      if (Array.isArray(value) && value.length)
+      if (Array.isArray(value))
         return value.filter(
           (p) => p && typeof p.id === "string" && typeof p.name === "string",
         );
@@ -30,6 +30,7 @@ export default function PlacePicker({ selected, label, onSelect, accountId }) {
   }, [saved, storageKey]);
   const [manualLatitude, setManualLatitude] = useState(""), [manualLongitude, setManualLongitude] = useState("");
   const [query, setQuery] = useState(""),
+    [editing, setEditing] = useState(false),
     [results, setResults] = useState([]),
     [maps, setMaps] = useState(null),
     [loading, setLoading] = useState(false),
@@ -63,6 +64,10 @@ export default function PlacePicker({ selected, label, onSelect, accountId }) {
     if (!name || !manualLatitude.trim() || !manualLongitude.trim() || !Number.isFinite(latitude) || !Number.isFinite(longitude) || Math.abs(latitude)>90 || Math.abs(longitude)>180)
       return setError("장소 이름과 올바른 위도·경도를 입력해주세요.");
     choose({ id: "manual:" + name + ":" + latitude + ":" + longitude, name, latitude, longitude, source: "manual" });
+  }
+  function removePlace(place) {
+    setSaved((items) => items.filter((item) => item.id !== place.id));
+    if (selected ? selected.id === place.id : place.name === label) onClear();
   }
   useEffect(() => {
     chooseRef.current = choose;
@@ -148,22 +153,28 @@ export default function PlacePicker({ selected, label, onSelect, accountId }) {
   }
   return (
     <>
+      <div className="saved-place-tools">
+        <button type="button" aria-label={editing ? "장소 수정 완료" : "장소 목록 수정"} aria-pressed={editing} disabled={!saved.length && !editing} onClick={() => setEditing(!editing)}>{editing ? "완료" : "수정"}</button>
+      </div>
       <div className="saved-place-list" aria-label="추가한 장소 목록">
         {saved.map((place) => {
           const checked = selected
             ? selected.id === place.id
             : place.name === label;
           return (
+            <div className="saved-place-row" key={place.id}>
             <button
               type="button"
               className="place-choice selected-place"
-              key={place.id}
+              disabled={editing}
               aria-pressed={checked}
               onClick={() => choose(place)}
             >
               <span>{place.name}</span>
               <span aria-hidden="true">{checked ? "✓" : ""}</span>
             </button>
+            {editing && <button type="button" className="saved-place-delete" aria-label={place.name + " 삭제"} onClick={() => removePlace(place)}>−</button>}
+            </div>
           );
         })}
       </div>

@@ -33,7 +33,6 @@ macOS/Linux에서는 `npm.cmd` 대신 `npm`을 사용합니다. Vite가 출력�
 | 휴대폰 화면 | 파일 (`src/mobile/pages/`) |
 | --- | --- |
 | 첫 시작 | `SplashPage.jsx` |
-| 로그인 및 회원가입 선택 | `WelcomePage.jsx` |
 | 로딩 | `LoadingPage.jsx` |
 | 로그인 | `LoginPage.jsx` |
 | 회원가입 | `SignupPage.jsx` |

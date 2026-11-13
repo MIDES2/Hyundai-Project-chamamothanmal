@@ -330,7 +330,7 @@ export function DemoVehicleApp() {
           <i />
         </button>
         <button className="dock-app" aria-label="차마못한말" onClick={home}>
-          <Car />
+          <Car surface="dark" />
         </button>
       </nav>
     </main>

@@ -9,6 +9,7 @@ export default function LoginPage({
   email,
   setEmail,
   password,
+  sessionActive,
   setPassword,
   visible,
   setVisible,
@@ -19,7 +20,7 @@ export default function LoginPage({
   return (
     <>
       <div className="back-header">
-        <button onClick={() => setPage("welcome")} aria-label="뒤로">
+        <button onClick={() => setPage("splash")} aria-label="뒤로">
           <Icon name="back" />
         </button>
       </div>
@@ -51,15 +52,17 @@ export default function LoginPage({
             <Icon name="lock" />
             <input
               aria-label="비밀번호"
-              type={visible ? "text" : "password"}
+              type={visible && password ? "text" : "password"}
               placeholder="비밀번호"
-              value={password}
+              value={password || (sessionActive ? "••••••••" : "")}
               autoComplete="current-password"
               onChange={(e) => setPassword(e.target.value)}
+              onFocus={(e) => { if (sessionActive && !password) e.currentTarget.select(); }}
               required
             />
             <button
               type="button"
+              disabled={sessionActive && !password}
               onClick={() => setVisible(!visible)}
               aria-label={visible ? "비밀번호 숨기기" : "비밀번호 표시"}
             >
@@ -69,16 +72,13 @@ export default function LoginPage({
           <div className="login-links">
             <button
               type="button"
-              onClick={() => {
-                setNotice("");
-                setPage("signup");
-              }}
+              onClick={() => setModal("아이디 찾기")}
             >
-              회원가입
+              아이디 찾기
             </button>
             <span> | </span>
-            <button type="button" onClick={() => setModal("비밀번호 변경")}>
-              비밀번호 변경
+            <button type="button" onClick={() => setModal("비밀번호 찾기/변경")}>
+              비밀번호 찾기/변경
             </button>
           </div>
           {notice && (
@@ -86,7 +86,7 @@ export default function LoginPage({
               {notice}
             </p>
           )}
-          <Primary disabled={busy || !email.trim() || !password.trim()}>로그인</Primary>
+          <Primary disabled={busy || !email.trim() || (!password.trim() && !sessionActive)}>로그인</Primary>
         </form>
         <div className="login-divider" />
         <button

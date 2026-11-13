@@ -1,5 +1,4 @@
 import SplashPage from "./pages/SplashPage.jsx";
-import WelcomePage from "./pages/WelcomePage.jsx";
 import LoadingPage from "./pages/LoadingPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import HomePage from "./pages/HomePage.jsx";
@@ -53,14 +52,31 @@ export default function App() {
     refresh(current).catch(error => { if (current === generation.current) setScreenError(error.message); });
   }, [tab, page]);
   function goLogin() {
+    setModal(null); setVisible(false); setNotice("");
+    if (profile) setEmail(profile.handle);
+    setPassword(""); setPage("login");
+  }
+  async function startApp() {
+    setModal(null); setTab("home");
+    if (!profile) { setPage("loading"); return; }
+    try { await refresh(); setPage("main"); }
+    catch { logout(); setNotice("로그인이 만료됐어요. 다시 로그인해주세요."); setPage("login"); }
+  }
+  function logout() {
     if (profile) request("/auth/logout", { method: "POST" }).catch(() => {});
     generation.current++; setAccessToken(null); setProfile(null); setFriends([]); setWaiting([]); setArchived([]);
-    clearAudio(); setClip(null); setDraft(initial()); setPassword(""); setModal(null); setPage("login"); setScreenError(""); upload.current = null;
+    clearAudio(); setClip(null); setDraft(initial()); setPassword(""); setEmail(""); setVisible(false);
+    setModal(null); setPage("splash"); setTab("home"); setNotice(""); setScreenError(""); upload.current = null;
   }
   async function login() {
     if (busy) return;
     setBusy(true); setNotice(""); const current = ++generation.current;
     try {
+      if (!password && profile && [profile.handle, profile.phone].some(value => value && value.toLowerCase() === email.trim().toLowerCase())) {
+        await refresh(current);
+        if (current === generation.current) { setPage("main"); setTab("home"); }
+        return;
+      }
       const result = await request("/auth/login", { method: "POST", body: { login: email.trim(), password } });
       if (current !== generation.current) return;
       setAccessToken(result.accessToken); setPassword(""); await refresh(current);
@@ -122,9 +138,7 @@ export default function App() {
   return (
     <div className="phone">
       {page === "splash" ? (
-        <SplashPage setPage={setPage} goLogin={goLogin} />
-      ) : page === "welcome" ? (
-        <WelcomePage setPage={setPage} goLogin={goLogin} />
+        <SplashPage onStart={startApp} goLogin={goLogin} loggedIn={Boolean(profile)} onLogout={logout} />
       ) : page === "loading" ? (
         <LoadingPage />
       ) : page === "signup" ? (
@@ -149,6 +163,7 @@ export default function App() {
           email={email}
           setEmail={setEmail}
           password={password}
+          sessionActive={Boolean(profile && [profile.handle, profile.phone].some(value => value && value.toLowerCase() === email.trim().toLowerCase()))}
           setPassword={setPassword}
           visible={visible}
           setVisible={setVisible}
@@ -191,7 +206,7 @@ export default function App() {
           <main className="main-content">
             {screenError && <p role="alert" className="error">{screenError}</p>}
             <button type="button" onClick={() => refresh().catch(e => setScreenError(e.message))}>새로고침</button>
-            <button type="button" onClick={goLogin}>로그아웃</button>
+            <button type="button" onClick={logout}>로그아웃</button>
             {tab === "home" ? (
               <HomePage
                 busy={busy}
@@ -281,9 +296,10 @@ export default function App() {
                 )}
               </p>
             )}
-            {modal === "비밀번호 변경" && (
+            {modal === "아이디 찾기" && <p className="account-help">아이디 찾기는 실제 인증 서버 연결 후 제공됩니다.</p>}
+            {(modal === "비밀번호 변경" || modal === "비밀번호 찾기/변경") && (
               <p className="account-help">
-                비밀번호 변경은 실제 인증 서버 연결 후 제공됩니다.
+                아이디 찾기·비밀번호 재설정은 아직 제공하지 않습니다. 가입한 계정 정보를 사용해주세요.
               </p>
             )}
             <button className="modal-confirm" onClick={() => setModal(null)}>

@@ -1,5 +1,5 @@
 import { Car } from "../../shared/Icons.jsx";
-export default function CarLogin({ onClick, dark = false }) {
+export default function CarLogin({ onClick, dark = false, artwork }) {
   return (
     <button
       type="button"
@@ -10,7 +10,7 @@ export default function CarLogin({ onClick, dark = false }) {
         onClick();
       }}
     >
-      <Car dark={dark} />
+      <Car dark={dark} artwork={artwork} />
     </button>
   );
 }

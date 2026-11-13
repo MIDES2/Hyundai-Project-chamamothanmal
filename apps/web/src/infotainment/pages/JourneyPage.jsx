@@ -1,4 +1,4 @@
-import waitingCar from "../../shared/assets/car-white.svg";
+import waitingCar from "../../shared/assets/car-white-depth.svg";
 export default function JourneyPage({
   screen,
   setScreen,
