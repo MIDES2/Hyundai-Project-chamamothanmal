@@ -138,3 +138,9 @@ Friend-account MVP: [API contract](friend-messages-mvp.md).
 `tests/integration/voice-message-smoke.ps1`은 초기 v0.1 초안용이다.
 현재 가족·차량·세션 기반 v2와 친구 메시지 권한에 직접 적용하지 않는다.
 최신 API 검증은 서버의 `scripts/smoke-test.ps1`와 기존 API 테스트를 사용한다.
+
+## APK 내부 디자인 ↔ Kotlin 경계
+
+2026-11-14 추가한 `NativeVehicleApp`은 외부 서버 페이지를 열지 않고 APK의 고정 HTTPS 자산 출처만 사용합니다. 화면 명령은 `VehicleNative.send`의 JSON이고 상태는 `window.onVehicleState`의 `protocol: 1`입니다. Kotlin은 알려진 명령만 처리하고 로그인·목록·선택·재생·반응·삭제의 기존 권한·주차·화면 사용 조건을 재검사합니다. JavaScript 상태의 허용 표시를 권한 근거로 사용하지 않습니다.
+
+상태에는 표시용 메시지 ID·장소명·청취 모드·길이·완료 여부와 기어·문·출처·재생 위치·보류 안내만 전달합니다. 토큰·비밀번호·음성 데이터·좌표는 상태에 포함하지 않습니다. 로그인 요청의 비밀번호는 Kotlin에 전달한 뒤 입력란을 비웁니다. 외부 링크·추가 프레임·파일·웹 네트워크·웹 음성 재생은 차단하며 서버 통신과 MediaPlayer는 Kotlin이 담당합니다. 도착만 모의이고 기어·문이 SDK인 조합도 전체 출처는 MOCK으로 표시합니다.

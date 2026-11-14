@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Local emulator/LAN development only. Main/release manifest does not enable HTTP. -->
-    <application android:usesCleartextTraffic="true" />
+    <application android:usesCleartextTraffic="true">
+        <!-- Emulator ANR traces blocked in HardwareRenderer during keyboard resize.
+             Limit software rendering to this debug screen; release stays unchanged. -->
+        <activity android:name=".integration.FriendInboxActivity" android:hardwareAccelerated="false" />
+    </application>
 </manifest>

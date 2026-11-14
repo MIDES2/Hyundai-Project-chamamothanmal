@@ -9,12 +9,14 @@ export default function PlaybackPage({
   played,
   isSaved,
   setScreen,
+  title = "'엄마'의 메시지예요",
+  onToggle,
 }) {
   return (
     <>
       <div className="v-screen-head">
         <h1>
-          '엄마'의 메시지예요 <Icon name="mail" />
+          {title} <Icon name="mail" />
         </h1>
         <button aria-label="홈" onClick={home}>
           <Icon name="home" />
@@ -24,10 +26,10 @@ export default function PlaybackPage({
         <button
           className="v-play-toggle"
           aria-label={playing ? "일시 정지" : "재생"}
-          onClick={() => {
+          onClick={onToggle || (() => {
             if (progress >= total) setProgress(0);
             setPlaying(!playing);
-          }}
+          })}
         >
           {playing ? (
             <span className="pause-mark">
@@ -56,7 +58,7 @@ export default function PlaybackPage({
         </div>
       </div>
       <div className="v-duration">
-        {"00:" + String(Math.floor(progress)).padStart(2, "0")} / 00:15
+        {Math.floor(progress / 60) + ":" + String(Math.floor(progress % 60)).padStart(2, "0")} / {Math.floor(total / 60) + ":" + String(Math.floor(total % 60)).padStart(2, "0")}
       </div>
       {played && (
         <div className="playback-actions">
@@ -68,7 +70,7 @@ export default function PlaybackPage({
           <button
             className="v-pill reply-link"
             onClick={() => {
-              setPlaying(false);
+              setPlaying?.(false);
               setScreen("reaction");
             }}
           >

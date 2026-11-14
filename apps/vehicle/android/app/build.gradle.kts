@@ -48,3 +48,14 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
 }
+
+// Bundle the reviewed React design locally. No remote page or personal .env is loaded by WebView.
+val vehicleWeb = tasks.register<Exec>("buildVehicleWebUi") {
+    val webDir = rootProject.projectDir.resolve("../../web")
+    workingDir(webDir)
+    commandLine("node", "node_modules/vite/bin/vite.js", "build", "--config", "vite.native.config.js")
+    inputs.files(fileTree(webDir.resolve("src")), webDir.resolve("native-vehicle.html"), webDir.resolve("vite.native.config.js"), webDir.resolve("package-lock.json"))
+    outputs.dir(layout.buildDirectory.dir("generated/vehicleWebAssets"))
+}
+android.sourceSets.named("main") { assets.srcDir(layout.buildDirectory.dir("generated/vehicleWebAssets").get().asFile) }
+tasks.named("preBuild") { dependsOn(vehicleWeb) }
