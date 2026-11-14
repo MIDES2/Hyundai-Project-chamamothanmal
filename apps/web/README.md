@@ -93,3 +93,9 @@ npm.cmd run export:vehicle
 2026-11-12 현재 이 폴더에는 모바일·차량 UI 시연 HTML이 있으며 실제 서버 API 연결은 남아 있습니다. 웹 연동 시 services/api/examples/web/place-search.js로 GET /api/v2/places를 호출하고, 선택한 placeName,address,latitude,longitude를 upload-example.js의 등록 요청에 연결합니다. 서버가 카카오 REST 키를 보관합니다. 지도 표시·검색 목록·최종 위치 선택·녹음 UI는 웹 담당자가 구현합니다. [장소 검색 안내](../../services/api/PLACE_SEARCH.md)
 
 [팀 코드 1차 통합 결과](../../docs/integration-qa-2026-11-12.md)를 참고합니다.
+
+## Pleos APK에 포함되는 화면
+
+`native-vehicle.html` → `src/infotainment/native-main.jsx` → `NativeVehicleApp.jsx`는 Android WebView 전용입니다. `npm.cmd run build:native`는 개인 환경파일을 읽지 않고 `apps/vehicle/android/app/build/generated/vehicleWebAssets/vehicle-ui`로 출력합니다. Android 빌드가 이 작업을 자동 실행하므로 최초 `npm.cmd ci` 후 APK를 빌드하면 됩니다.
+
+이 화면은 브라우저에서 직접 서버를 호출하지 않습니다. `VehicleNative.send`로 로그인·목록·선택·재생·멈춤·답장·삭제를 요청하고 Kotlin이 전달하는 `onVehicleState`만 표시합니다. 토큰·음성 URL·좌표는 화면 상태에 포함하지 않습니다. 브라우저 `/vehicle.html` 미리보기와 별도 진입점이며, 실제 기어·문과 재생 허용 여부는 Kotlin SDK 및 안전 판정이 결정합니다.

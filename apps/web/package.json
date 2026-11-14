@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "build:vehicle": "vite build --config vite.vehicle.config.js",
     "export:vehicle": "node scripts/export-vehicle.mjs",
-    "export:mobile": "node scripts/export-mobile.mjs"
+    "export:mobile": "node scripts/export-mobile.mjs",
+    "build:native": "vite build --config vite.native.config.js"
   },
   "dependencies": {
     "react": "^19.3.1",
