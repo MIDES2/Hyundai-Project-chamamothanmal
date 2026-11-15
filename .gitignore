@@ -55,3 +55,6 @@ Thumbs.db
 
 # Optional local-only audio for the original vehicle prototype screen
 apps/vehicle/android/app/src/main/res/raw/*.wav
+
+# Contest submission APK
+!/apk/Ttotabolka_chamamothanmal_release.apk

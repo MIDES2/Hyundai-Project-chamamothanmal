@@ -167,3 +167,51 @@ Gradle은 React 차량 화면을 빌드해 APK 안에 포함합니다. **차량 
 - [통합 테스트 시나리오](tests/integration/README.md)
 - [보안과 데이터 처리](docs/security.md)
 - [빌드 및 검증 기준](docs/verification.md)
+- [작업 기록 양식](docs/work-log-template.md)
+
+## 공모전 제출 APK 및 실행 안내 (2026-11-15)
+
+### 제출 파일
+- APK: [Ttotabolka_chamamothanmal_release.apk](apk/Ttotabolka_chamamothanmal_release.apk)
+- 보조 다운로드: [GitHub Release v0.1.0-contest](https://github.com/MIDES2/Hyundai-Project-chamamothanmal/releases/tag/v0.1.0-contest)
+- APK SHA-256: `F42DDBB90CC9CDE2C59969796322B9814478A47A9C03A933ADA2D6229CD2C8CC`
+- 서명된 release APK이며 설치·실행과 서명 검증을 확인했습니다.
+
+### 테스트 환경
+- Windows 11 / Android Studio
+- Pleos Connect 에뮬레이터 2.1.0
+- Android 14 / API 34 / x86_64
+- 에뮬레이터 화면 해상도: 2560 × 1440
+- 앱 패키지: `com.example.malttuk`
+
+### 실행 방법
+1. 에뮬레이터에 제출 APK를 설치하고 차마못한말 앱을 실행합니다.
+2. 발신자 웹 주소에 접속합니다: https://hyundai-project-chamamothanmal.onrender.com
+3. 웹에서 운전자 계정과 녹음자 계정을 각각 가입합니다.
+4. 녹음자 계정으로 로그인하고 운전자 ID 또는 전화번호로 친구를 연결합니다.
+5. 차량 앱의 로그인 화면에서 서버 주소 설정을 열고 아래 주소를 입력합니다.
+   `https://hyundai-project-chamamothanmal.onrender.com`
+6. 차량 앱에는 운전자 계정으로 로그인합니다.
+7. 발신자 웹에서 음성을 녹음하고 장소 좌표·수신 시작일·청취 모드·전달 대상을 지정해 등록합니다.
+8. 차량 앱에서 받은 마음을 새로고침하고 메시지를 선택합니다.
+9. 목적지 도착·P단·도어 닫힘 등 재생 조건을 충족하면 청취 모드에 따라 재생합니다.
+
+배포 서버를 사용하는 경우 PC에서 로컬 API 서버나 웹 개발 서버를 별도로 실행할 필요가 없습니다. 차량 앱을 다시 실행한 뒤에는 서버 주소를 확인해 주세요.
+
+### 에뮬레이터 도착 재현
+시험 메시지의 목적지를 위도 `37.0000`, 경도 `127.0000`으로 등록한 경우 다음 명령으로 위치를 전달할 수 있습니다. 명령의 좌표 순서는 경도, 위도입니다.
+
+```powershell
+& "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe" -s emulator-5554 emu geo fix 127.0000 37.0000
+```
+
+위 명령은 에뮬레이터의 GPS 위치를 주입하는 시험입니다. 실제 차량에서의 도착 시험과 구별합니다. P단과 도어 상태 등 다른 재생 조건도 충족해야 합니다.
+
+### 확인한 동작과 범위
+- HTTPS 서버를 통한 로그인, 친구 연결, 음성 등록 및 차량 메시지 조회
+- 목적지 범위 밖에서 재생 보류
+- 에뮬레이터 GPS로 도착을 재현한 자동 재생
+- ‘재생 전 확인’ 모드에서 듣기 버튼을 눌렀을 때만 재생
+- 재생 완료 후 차량 보관함 이동 및 발신자 완료 표시
+- 실제 차량에서의 동작은 미검증
+- 배포 서버 재시작 후 계정·음성 파일 유지 여부는 별도 확인 필요
