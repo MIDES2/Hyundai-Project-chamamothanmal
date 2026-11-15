@@ -13,7 +13,8 @@ for filename in filter(None, tracked):
     name = path.name.lower()
     if ((name == ".env" or name.startswith(".env.")) and not name.endswith(".example")):
         errors.append(f"Local environment file tracked: {filename}")
-    if name == "local.properties" or path.suffix.lower() in {".jks", ".keystore", ".p12", ".pem", ".apk", ".aab"}:
+    is_submission_apk = filename == "apk/Ttotabolka_chamamothanmal_release.apk"
+    if name == "local.properties" or (path.suffix.lower() in {".jks", ".keystore", ".p12", ".pem", ".apk", ".aab"} and not is_submission_apk):
         errors.append(f"Local credential or build artifact tracked: {filename}")
 for name in [".env", ".env.local", "apps/web/.env", "services/api/.env", "apps/vehicle/local.properties"]:
     result = subprocess.run(["git", "check-ignore", "--no-index", "-q", name], cwd=root)
