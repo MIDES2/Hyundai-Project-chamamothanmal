@@ -1,0 +1,57 @@
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+!.env.*.example
+local.properties
+*.jks
+*.keystore
+*.p12
+*.pem
+credentials*.json
+service-account*.json
+# Browser tooling, if adopted
+node_modules/
+dist/
+coverage/
+.next/
+# Python repository tooling
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+# Android / Gradle
+.gradle/
+.kotlin/
+.gradle-user-home/
+*.class
+build/
+*.apk
+*.aab
+*.hprof
+# Local data and uploads
+*.db
+*.sqlite
+*.sqlite3
+uploads/
+logs/
+*.log
+# Legacy API build outputs and local H2 data
+services/api/target/
+services/api/data/
+# Editors / OS
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.DS_Store
+Thumbs.db
+*.swp
+
+# Optional local-only audio for the original vehicle prototype screen
+apps/vehicle/android/app/src/main/res/raw/*.wav
