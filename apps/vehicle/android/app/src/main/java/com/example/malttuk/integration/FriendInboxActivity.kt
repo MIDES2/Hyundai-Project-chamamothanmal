@@ -290,7 +290,7 @@ class FriendInboxActivity : AppCompatActivity() {
         if(current!=generation || destroyed) return@post
         val api=error as? VoiceMessageClient.ApiFailure
         if(api?.status==401 || api?.status==403) { logout();show("로그인이 만료됐거나 권한이 없습니다. 다시 로그인해주세요") }
-        else show(if(api!=null) "서버 응답 ${api.status} · ${api.code}" else "연결 또는 응답 처리 실패 · 서버 주소와 실행 상태를 확인해주세요")
+        else show(if(api!=null) "서버 응답 ${api.status} · ${api.code}" else "연결 오류: ${error.javaClass.simpleName} / 원인: ${error.cause?.javaClass?.simpleName ?: "없음"}")
     } }
     private fun selectMessage(message:JSONObject,archive:Boolean) {
         if(!interaction()) return
