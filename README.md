@@ -12,7 +12,8 @@
 | --- | --- |
 | 소스 코드 | [GitHub 저장소](https://github.com/MIDES2/Hyundai-Project-chamamothanmal) · 제출 기준 브랜치 `main` |
 | APK 배포 페이지 | [v0.1.0-contest Release](https://github.com/MIDES2/Hyundai-Project-chamamothanmal/releases/tag/v0.1.0-contest) |
-| APK 파일 | [Ttotabolka_chamamothanmal_release.apk 다운로드](https://github.com/MIDES2/Hyundai-Project-chamamothanmal/releases/download/v0.1.0-contest/Ttotabolka_chamamothanmal_release.apk) |
+| 저장소 APK 파일 | [apk/Ttotabolka_chamamothanmal_release.apk](apk/Ttotabolka_chamamothanmal_release.apk) |
+| Release APK 파일 | [Ttotabolka_chamamothanmal_release.apk 다운로드](https://github.com/MIDES2/Hyundai-Project-chamamothanmal/releases/download/v0.1.0-contest/Ttotabolka_chamamothanmal_release.apk) |
 | APK 빌드 기준 소스 | [fd3044d464a6421f30bfd5b3968b856cb5a685b3](https://github.com/MIDES2/Hyundai-Project-chamamothanmal/commit/fd3044d464a6421f30bfd5b3968b856cb5a685b3) |
 | 모바일 웹 | [차마못한말 열기](https://hyundai-project-chamamothanmal.onrender.com/) |
 | 차량 앱에 입력할 서버 주소 | `https://hyundai-project-chamamothanmal.onrender.com` |
@@ -20,9 +21,18 @@
 
 Release APK는 HTTPS 서버에 연결합니다. APK에 서버와 데이터베이스가 포함된 것은 아니므로, 테스트할 때 위 서버가 실행 중이고 인터넷에 연결되어 있어야 합니다. 로컬 개발 시에는 아래의 별도 실행 방법을 사용합니다.
 
+> **⚠️ 공개 서버 이용 안내 (심사위원 필독)**
+>
+> - 공개 시연 서버는 Render 무료 호스팅을 사용합니다. 약 15분 동안 요청이 없으면 대기 상태로 전환되며, **첫 접속 시 약 1분 또는 그 이상 로딩**될 수 있습니다. [health](https://hyundai-project-chamamothanmal.onrender.com/health)에서 `{"status":"UP"}`이 보이면 서버가 응답할 준비가 된 상태입니다.
+> - 무료 호스팅에서 영구 저장소 없이 로컬 H2·음성 파일을 사용하는 경우, **대기 전환·재시작·재배포 시 계정·친구·메시지 데이터가 초기화**됩니다. 미리 만들어 둔 테스트 계정을 전제로 하지 않으므로, 아래 「APK 설치 및 서비스 실행 방법」 5단계에 따라 **운전자 계정과 녹음자 계정을 직접 가입**해 주세요.
+> - 테스트 중 로그인이 안 되면 먼저 health 응답과 서버 주소를 확인한 뒤 다시 로그인해 주세요. 서버 재시작 시 로그인 세션도 만료됩니다. 계정 데이터까지 초기화된 경우에는 **계정 가입 → 친구 연결 → 음성 전송**을 다시 진행해 주세요. 로그인 실패만으로 서버 재시작을 단정할 수는 없습니다.
+>
+> 호스팅 동작 근거: [Render 무료 서비스 공식 안내](https://render.com/docs/free). 위 초기화 주의사항은 공개 시연 서버의 임시 저장 방식에 관한 것이며, 로컬 PC의 파일 DB나 별도 영구 저장소가 있는 환경에서 서버를 재시작할 때 항상 데이터가 삭제된다는 뜻은 아닙니다.
+
+
 ## APK 설치 및 서비스 실행 방법
 
-1. 위 Release에서 APK를 내려받습니다.
+1. 위 표의 저장소 `apk/` 파일 또는 Release에서 동일한 제출 APK를 내려받습니다.
 2. **Pleos Connect v2.1.0 에뮬레이터**를 실행합니다. 설치된 Android SDK의 `adb`를 사용할 수 있는 터미널에서 다음 명령으로 설치합니다. 경로는 내려받은 APK의 실제 경로로 바꿉니다.
 
    ```powershell
@@ -32,7 +42,11 @@ Release APK는 HTTPS 서버에 연결합니다. APK에 서버와 데이터베이
 
 3. 에뮬레이터의 앱 목록에서 **차마못한말**을 실행합니다. 위치 권한은 앱 사용 중 허용하고 정확한 위치를 허용합니다.
 4. 로그인 화면의 서버 주소 설정에 `https://hyundai-project-chamamothanmal.onrender.com`을 입력합니다.
-5. 모바일 웹에서 **운전자 계정**과 **녹음자 계정**을 각각 가입합니다. 등록한 ID 또는 전화번호로 친구를 연결합니다. 테스트용 정보만 사용합니다.
+5. [모바일 웹](https://hyundai-project-chamamothanmal.onrender.com/)에서 계정 2개를 가입하고 친구로 연결합니다. 테스트용 정보만 사용합니다.
+   - **시작하기 → 회원가입 → `운전자 계정`**을 선택해 가입합니다. 차량 앱에서 로그인할 계정입니다.
+   - 로그인 화면으로 돌아가 다시 **회원가입 → `녹음자 계정`**을 선택해 가입합니다. 모바일 웹에서 메시지를 보낼 계정입니다.
+   - 녹음자 계정으로 로그인하고 **친구 추가**에서 운전자 계정의 ID 또는 전화번호를 검색해 연결합니다.
+   - 서버의 임시 데이터가 초기화되면 이 단계를 다시 진행합니다.
 6. 녹음자 계정으로 로그인해 운전자를 수신자로 선택하고, 목적지·수신 시작일·청취 모드를 설정한 뒤 음성을 녹음해 전송합니다.
 7. 차량 앱에는 **수신자로 지정한 동일한 운전자 계정**으로 로그인합니다. 받은 마음을 새로고침하고 테스트할 메시지를 선택합니다.
 8. 아래의 GPS·주차 조건 테스트를 진행합니다. 재생을 끝까지 마치면 보관함과 이모지 답장을 확인할 수 있습니다.
@@ -214,4 +228,4 @@ Gradle은 React 차량 화면을 빌드해 APK 안에 포함합니다. **차량 
 - ‘재생 전 확인’ 모드에서 듣기 버튼을 눌렀을 때만 재생
 - 재생 완료 후 차량 보관함 이동 및 발신자 완료 표시
 - 실제 차량에서의 동작은 미검증
-- 배포 서버 재시작 후 계정·음성 파일 유지 여부는 별도 확인 필요
+- 공개 무료 서버의 임시 데이터는 대기 전환·재시작·재배포 시 초기화될 수 있습니다. 상단 「공개 서버 이용 안내」에 따라 테스트 계정을 준비합니다.
